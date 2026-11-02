@@ -5,7 +5,6 @@ import hashlib
 import json
 import os
 import re
-import shutil
 import sqlite3
 import tempfile
 from datetime import datetime, timezone
@@ -49,6 +48,7 @@ class Vault:
             );
             CREATE INDEX IF NOT EXISTS idx_items_created ON items(created_at DESC);
         """)
+        fts_exists = self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='items_fts'").fetchone() is not None
         try:
             self.db.executescript("""
                 CREATE VIRTUAL TABLE IF NOT EXISTS items_fts
@@ -68,8 +68,9 @@ class Vault:
                     VALUES(new.id,new.title,new.content);
                 END;
             """)
-            # Rebuild covers databases created before FTS became available.
-            self.db.execute("INSERT INTO items_fts(items_fts) VALUES('rebuild')")
+            # Only rebuild newly created indexes; avoid O(n) work on startup.
+            if not fts_exists:
+                self.db.execute("INSERT INTO items_fts(items_fts) VALUES('rebuild')")
             self.fts = True
         except sqlite3.OperationalError:
             self.fts = False
@@ -207,8 +208,8 @@ class Vault:
                 pass
         pattern = "%" + query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
         return [dict(r) for r in self.db.execute("""
-            SELECT * FROM items WHERE title LIKE ? ESCAPE '\'
-            OR content LIKE ? ESCAPE '\' ORDER BY id DESC LIMIT ?
+            SELECT * FROM items WHERE title LIKE ? ESCAPE char(92)
+            OR content LIKE ? ESCAPE char(92) ORDER BY id DESC LIMIT ?
         """, (pattern, pattern, limit))]
 
     def delete(self, item_id: int) -> bool:
