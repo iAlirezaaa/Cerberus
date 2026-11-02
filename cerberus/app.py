@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QMenu, QMessageBox, QPushButton, QSystemTrayIcon, QVBoxLayout, QWidget,
 )
 
-from .pet import CerberusPet
+from .pet import CerberusPet, mime_image_png
 from .settings import Settings, data_dir
 from .vault import CaptureError, Vault
 
@@ -188,6 +188,10 @@ class Controller:
                 return "files", files
         if mime.hasText() and mime.text().strip():
             return "text", mime.text()
+        if mime.hasImage():
+            png = mime_image_png(mime)
+            if png:
+                return "image", png
         return None
 
     def clipboard_changed(self) -> None:
@@ -211,6 +215,9 @@ class Controller:
             elif kind == "text":
                 item = self.vault.capture_text(str(value), source="drop-or-clipboard")
                 message = f'Guarded {item["kind"]}!'
+            elif kind == "image":
+                self.vault.add_bytes(bytes(value), name="captured-image.png", source="drop-or-clipboard")
+                message = "Image guarded!"
             else:
                 return
             self.pet.summon(message)
