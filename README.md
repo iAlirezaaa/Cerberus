@@ -15,7 +15,7 @@ An animated, local-first desktop companion that catches text, URLs and files you
 
 ## What is Cerberus?
 
-Cerberus is a playful desktop pet with a real job: capturing information. Drag text, a link or a file onto the three-headed hellhound. It catches the item, enters a short Hades-portal animation, and saves it into your **local**, searchable memory vault.
+Cerberus is a playful desktop pet with a real job: capturing information. Drag text, a link, a local file or an image onto the three-headed hellhound. It catches the item, enters a short Hades-portal animation, and saves it into your **local**, searchable memory vault.
 
 Inspired by desktop pets such as Shimeji, Cerberus adds an information capture and retrieval layer rather than just screen decoration.
 
@@ -24,10 +24,10 @@ Inspired by desktop pets such as Shimeji, Cerberus adds an information capture a
 ## Features in this version
 
 - **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; custom vector-painted mascot with idle, portal, dash and catch reactions.
-- **Feed it by dragging:** text, HTTP(S) links, and local files dropped onto the pet are captured.
+- **Feed it by dragging:** text, HTTP(S) links, local files and dropped image data are captured.
 - **Portable memory vault:** local SQLite database with FTS5 full-text indexing when available and an indexed fallback; files are **copied**, never moved from their source.
 - **Find what it swallowed:** desktop search window and command-line search/list/export/delete commands.
-- **Clipboard capture (opt-in only):** disabled by default; when enabled, newly copied clipboard text/URLs can be captured with an animation. **Selecting/highlighting text alone does not trigger capture in this MVP.**
+- **Clipboard capture (opt-in only):** disabled by default; when enabled, newly copied clipboard text/URLs/images can be captured with an animation. **Selecting/highlighting text alone does not trigger capture in this MVP.**
 - **System tray controls:** show/hide, open vault, manually feed clipboard, toggle clipboard capture, quit.
 - **Safe defaults:** no account, cloud service, analytics, microphone, network upload or hidden clipboard collection. Data stays under your user profile unless you override the data directory.
 - **Duplicate detection, capture limits, atomic file writes and unit tests.**
@@ -47,6 +47,17 @@ cerberus-desktop
 
 On macOS/Linux, activate with `source .venv/bin/activate`.
 
+
+### Optional standalone Windows .exe
+
+From PowerShell in the repo root (requires Python on the build machine):
+
+~~~powershell
+.\scripts\build_windows.ps1
+~~~
+
+Output: dist/Cerberus.exe. This currently produces an **unsigned** build; it may trigger Windows SmartScreen. No executable is published as a verified release yet. Packaging needs on-device validation.
+
 ### Try the vault from a terminal
 
 ```bash
@@ -63,7 +74,7 @@ Run `python -m cerberus --help` for all commands. Override the data directory wi
 
 ## How it works
 
-1. Drop text, URLs or a file **onto Cerberus** (or use the CLI).
+1. Drop text, URLs, a file or an image **onto Cerberus** (or use the CLI).
 2. Cerberus plays a portal/catch reaction and writes the item to the local vault.
 3. Double-click the pet or use the tray menu to search and retrieve it.
 
