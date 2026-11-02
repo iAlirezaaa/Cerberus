@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0-dev — screen-ready guardian character (2026-11-03)
+
+### Added
+- Original alpha-transparent three-headed SVG mascot bundled as a packaged GUI resource.
+- Cached high-resolution sprite render, scalable on-screen pet with 3 tray size presets.
+- Animated Hades portal entrance, dash/run, paper-catch, celebration, idle breathing, wake-up and playful pat response.
+- Automatic sleepy standby after roughly 95 seconds without pet interaction; tray sleep, guard, wake and play.
+- Cross-platform deterministic animation state machine with tests and reduced-motion option.
+- On-screen placement near desktop bottom-right, bounded dragging, plus a test-time PNG/GIF sprite preview exporter.
+
+### Notes
+- This is a **2D vector sprite with procedural transforms**, not a skeletal 3D rig or independently articulated animation set.
+- Selection-only triggers and pixel-perfect input pass-through remain future work. Run real-desktop GUI tests before production use.
+
 ## 0.1.0 — initial development snapshot (2026-11-03)
 
 ### Added
