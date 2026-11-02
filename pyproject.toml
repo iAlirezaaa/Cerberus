@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cerberus-desktop-pet"
+version = "0.1.0"
+description = "A three-headed desktop pet that catches and remembers your information"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "MIT"}
+authors = [{name = "Cerberus contributors"}]
+keywords = ["desktop-pet", "second-brain", "sqlite", "productivity", "pyside6"]
+dependencies = []
+
+[project.optional-dependencies]
+gui = ["PySide6>=6.6,<7"]
+
+[project.scripts]
+cerberus = "cerberus.cli:main"
+cerberus-desktop = "cerberus.app:main"
+
+[tool.setuptools.packages.find]
+include = ["cerberus*"]
