@@ -51,3 +51,16 @@ jobs:
         env:
           QT_QPA_PLATFORM: offscreen
           CERBERUS_HOME: ${{ runner.temp }}/cerberus-gui
+      - name: Render character preview sprites and animation
+        run: |
+          python -m pip install "Pillow>=10,<13"
+          python scripts/render_preview.py
+        env:
+          QT_QPA_PLATFORM: offscreen
+      - name: Upload character preview assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cerberus-character-preview
+          path: preview/
+          retention-days: 14
+          if-no-files-found: error
