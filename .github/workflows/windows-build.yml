@@ -25,7 +25,7 @@ jobs:
       - name: Install app and packager
         run: python -m pip install -e ".[gui]" "pyinstaller>=6,<7"
       - name: Build desktop executable
-        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --name Cerberus scripts/run_desktop.py
+        run: python -m PyInstaller --noconfirm --clean --onefile --windowed --collect-data cerberus --name Cerberus scripts/run_desktop.py
       - name: Upload unsigned executable
         uses: actions/upload-artifact@v4
         with:
