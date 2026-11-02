@@ -22,3 +22,6 @@ cerberus-desktop = "cerberus.app:main"
 
 [tool.setuptools.packages.find]
 include = ["cerberus*"]
+
+[tool.setuptools.package-data]
+cerberus = ["assets/*.svg"]
