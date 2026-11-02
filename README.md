@@ -9,6 +9,8 @@ An animated, local-first desktop companion that catches text, URLs and files you
 
 ![Cerberus mark](assets/cerberus-mark.svg)
 
+![Animated pet's original transparent three-headed character sprite](cerberus/assets/guardian.svg)
+
 [![CI](https://github.com/iAlirezaaa/Cerberus/actions/workflows/ci.yml/badge.svg)](https://github.com/iAlirezaaa/Cerberus/actions/workflows/ci.yml)
 
 </div>
@@ -23,12 +25,12 @@ Inspired by desktop pets such as Shimeji, Cerberus adds an information capture a
 
 ## Features in this version
 
-- **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; custom vector-painted mascot with idle, portal, dash and catch reactions.
+- **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; original transparent vector character sprite with idle/breathing, portal, dash, catch, celebrate, play and sleeping reactions.
 - **Feed it by dragging:** text, HTTP(S) links, local files and dropped image data are captured.
 - **Portable memory vault:** local SQLite database with FTS5 full-text indexing when available and an indexed fallback; files are **copied**, never moved from their source.
 - **Find what it swallowed:** desktop search window and command-line search/list/export/delete commands.
 - **Clipboard capture (opt-in only):** disabled by default; when enabled, newly copied clipboard text/URLs/images can be captured with an animation. **Selecting/highlighting text alone does not trigger capture in this MVP.**
-- **System tray controls:** show/hide, open vault, manually feed clipboard, toggle clipboard capture, quit.
+- **System tray controls:** show/hide, open vault, manually feed clipboard, toggle clipboard capture, summon, play, guard, standby/sleep, resize (three sizes), reduced-motion mode and quit.
 - **Safe defaults:** no account, cloud service, analytics, microphone, network upload or hidden clipboard collection. Data stays under your user profile unless you override the data directory.
 - **Duplicate detection, capture limits, atomic file writes and unit tests.**
 
@@ -47,6 +49,20 @@ cerberus-desktop
 
 On macOS/Linux, activate with `source .venv/bin/activate`.
 
+
+### On-screen desktop controls
+
+| Action | What Cerberus does |
+| --- | --- |
+| Start `cerberus-desktop` | Appears as a transparent always-on-top character near the bottom-right of the primary monitor |
+| Drag text, URL, image or file onto the character | Captures locally, runs portal > dash > catch > celebrate |
+| Single-click | Bounces / reacts to being petted |
+| Double-click | Opens the searchable vault |
+| Left-drag | Repositions the companion on screen |
+| Right-click or use tray menu | Summon, sleep, guard, play, show/hide, resize, reduced motion |
+| 95 seconds of inactivity | Enters an energy-saving sleeping stance (no data collection) |
+
+The SVG body currently animates as one rigless layer with expressive transforms and procedural FX. Independently articulated heads, paws and tail are planned for a future animation atlas. Transparent portions of the window are **not** native click-through yet.
 
 ### Optional standalone Windows .exe
 
@@ -70,6 +86,8 @@ python -m cerberus export ./cerberus-export.json
 python -m unittest discover -s tests -v
 ```
 
+**Character asset:** [guardian.svg](cerberus/assets/guardian.svg) is a standalone, alpha-transparent vector sprite, shipped inside the app. The Qt renderer caches it as a high-resolution image and applies deterministic time-based transforms plus portal, paper-capture and particle effects. The motion pipeline lives in [motion.py](cerberus/motion.py).
+
 Run `python -m cerberus --help` for all commands. Override the data directory with `CERBERUS_HOME`.
 
 ## How it works
@@ -77,6 +95,7 @@ Run `python -m cerberus --help` for all commands. Override the data directory wi
 1. Drop text, URLs, a file or an image **onto Cerberus** (or use the CLI).
 2. Cerberus plays a portal/catch reaction and writes the item to the local vault.
 3. Double-click the pet or use the tray menu to search and retrieve it.
+4. Single-click to pet Cerberus, drag the pet with the left mouse button to reposition it, or right-click for the tray actions. After roughly 95 seconds without interaction it settles into a sleeping standby pose; hover or interact to wake it.
 
 The global-selection animation described in the original concept will require a separate, **explicitly enabled** OS accessibility integration. Ordinary selection in arbitrary applications is not observable through Qt alone. Clipboard capture works after an actual copy action, never merely because text is highlighted.
 
