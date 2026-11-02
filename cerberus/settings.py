@@ -24,6 +24,8 @@ class Settings:
     clipboard_capture: bool = False
     show_pet: bool = True
     reduced_motion: bool = False
+    pet_size: int = 340
+    standby_seconds: int = 95
 
     @classmethod
     def load(cls, home: Path | None = None) -> "Settings":
@@ -32,10 +34,16 @@ class Settings:
             raw = json.loads(path.read_text(encoding="utf-8"))
             if not isinstance(raw, dict):
                 return cls()
-            return cls(**{
-                key: raw[key] for key in ("clipboard_capture", "show_pet", "reduced_motion")
+            values = {
+                key: raw[key]
+                for key in ("clipboard_capture", "show_pet", "reduced_motion")
                 if type(raw.get(key)) is bool
-            })
+            }
+            if type(raw.get("pet_size")) is int and 180 <= raw["pet_size"] <= 500:
+                values["pet_size"] = raw["pet_size"]
+            if type(raw.get("standby_seconds")) is int and 15 <= raw["standby_seconds"] <= 3600:
+                values["standby_seconds"] = raw["standby_seconds"]
+            return cls(**values)
         except (OSError, ValueError, TypeError):
             return cls()
 
