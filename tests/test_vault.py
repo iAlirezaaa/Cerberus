@@ -50,6 +50,14 @@ class VaultTests(unittest.TestCase):
         self.assertTrue(src.is_file())
         self.assertFalse(self.vault.delete(a["id"]))
 
+    def test_dropped_image_bytes_round_trip_and_dedupe(self):
+        png = b"\x89PNG\r\n\x1a\n" + b"mock-data"
+        one = self.vault.add_bytes(png, name="screenshot.png")
+        two = self.vault.add_bytes(png, name="renamed.png")
+        self.assertEqual(one["id"], two["id"])
+        self.assertEqual(Path(one["stored_path"]).read_bytes(), png)
+        self.assertEqual(one["title"], "screenshot.png")
+
     def test_limit_checks(self):
         with self.assertRaises(CaptureError):
             self.vault.add_text("x" * (MAX_TEXT_BYTES + 1))
