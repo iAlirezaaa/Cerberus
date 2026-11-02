@@ -116,7 +116,11 @@ class Controller:
         self.settings = Settings.load(self.home)
         self.vault = Vault(self.home)
         self.window = VaultWindow(self.vault)
-        self.pet = CerberusPet(reduced_motion=self.settings.reduced_motion)
+        self.pet = CerberusPet(
+            reduced_motion=self.settings.reduced_motion,
+            standby_seconds=self.settings.standby_seconds,
+        )
+        self.pet.set_pet_size(self.settings.pet_size)
         self.pet.capture_requested.connect(self.capture)
         self.pet.vault_requested.connect(self.open_vault)
         self.pet.menu_requested.connect(self.open_menu)
@@ -127,6 +131,14 @@ class Controller:
         show.triggered.connect(self.toggle_pet)
         self.menu.addAction("Open memory vault", self.open_vault)
         self.menu.addAction("Feed current clipboard", self.feed_clipboard)
+        self.menu.addSeparator()
+        self.menu.addAction("Summon / wake Cerberus", lambda: self.pet.play("wake"))
+        self.menu.addAction("Play with Cerberus", lambda: self.pet.play("play"))
+        self.menu.addAction("Guard the vault", lambda: self.pet.play("guard"))
+        self.menu.addAction("Sleep / standby", lambda: self.pet.play("sleep"))
+        sizes = self.menu.addMenu("Pet size")
+        for label, size in (("Small", 230), ("Medium", 340), ("Large", 450)):
+            sizes.addAction(label, lambda checked=False, target=size: self.set_pet_size(target))
         self.menu.addSeparator()
         self.clipboard_action = QAction("Auto-capture newly copied clipboard items", self.menu)
         self.clipboard_action.setCheckable(True)
@@ -173,9 +185,14 @@ class Controller:
         self.settings.save(self.home)
         self.pet.tell("Clipboard capture ON" if enabled else "Clipboard capture OFF")
 
+    def set_pet_size(self, size: int) -> None:
+        self.pet.set_pet_size(size)
+        self.settings.pet_size = self.pet.width()
+        self.settings.save(self.home)
+
     def set_reduced_motion(self, enabled: bool) -> None:
         self.settings.reduced_motion = enabled
-        self.pet.reduced_motion = enabled
+        self.pet.set_reduced_motion(enabled)
         self.settings.save(self.home)
 
     def _clipboard_payload(self) -> tuple[str, object] | None:
