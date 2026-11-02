@@ -11,8 +11,8 @@ permissions:
 
 jobs:
   core-tests:
-    name: Core tests / Python 3.11 / \${{ matrix.os }}
-    runs-on: \${{ matrix.os }}
+    name: Core tests / Python 3.11 / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -34,4 +34,4 @@ jobs:
           python -m cerberus add-text "Cerberus CI smoke test"
           python -m cerberus search "Cerberus"
         env:
-          CERBERUS_HOME: \${{ runner.temp }}/cerberus-ci
+          CERBERUS_HOME: ${{ runner.temp }}/cerberus-ci
