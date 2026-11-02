@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="720" height="600" viewBox="0 0 360 300" role="img" aria-labelledby="title desc">
+<title id="title">Cerberus, three-headed guardian desktop pet</title>
+<desc id="desc">An original charcoal-furred three-headed hellhound with fiery amber eyes, gold collar and teal cloth accents. Transparent background.</desc>
+<defs>
+  <linearGradient id="fur" x1=".1" x2=".85" y1="0" y2="1"><stop stop-color="#59606a"/><stop offset=".3" stop-color="#353b48"/><stop offset=".72" stop-color="#242934"/><stop offset="1" stop-color="#121923"/></linearGradient>
+  <linearGradient id="body" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#47505d"/><stop offset=".55" stop-color="#2c3440"/><stop offset="1" stop-color="#111923"/></linearGradient>
+  <linearGradient id="muzzle" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#58616a"/><stop offset="1" stop-color="#303947"/></linearGradient>
+  <linearGradient id="gold" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#ffda91"/><stop offset=".33" stop-color="#d69d48"/><stop offset=".7" stop-color="#99602f"/><stop offset="1" stop-color="#f2b668"/></linearGradient>
+  <linearGradient id="ear" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#df7053"/><stop offset=".56" stop-color="#b84d40"/><stop offset="1" stop-color="#4e2934"/></linearGradient>
+  <linearGradient id="eyes" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#ffdc74"/><stop offset=".55" stop-color="#ff9e2e"/><stop offset="1" stop-color="#f75c30"/></linearGradient>
+  <linearGradient id="cloth" x1=".2" y1="0" x2="1" y2="1"><stop stop-color="#39c1b8"/><stop offset=".6" stop-color="#117f84"/><stop offset="1" stop-color="#0d4555"/></linearGradient>
+  <radialGradient id="aura"><stop stop-color="#f79a3d" stop-opacity=".36"/><stop offset="1" stop-color="#f7772b" stop-opacity="0"/></radialGradient>
+  <g id="head">
+    <!-- pointed ears and dark rough fur silhouette -->
+    <path d="M-37-24 Q-50-53-44-80 Q-18-66-12-49 Q0-56 13-49 Q21-65 43-80 Q50-53 37-25 Z" fill="#20242e" stroke="#101820" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M-40-69 Q-21-60-19-42 L-36-34 Q-42-51-40-69Z M40-69 Q21-60 19-42 L36-34 Q42-51 40-69Z" fill="url(#ear)"/>
+    <path d="M-54-12 L-47-30 L-43-38 L-31-44 L-25-51 L-13-47 L-4-55 L5-48 L15-53 L27-43 L40-42 L47-28 L54-11 L49 1 L57 7 L45 13 L51 23 L32 23 L24 31 L0 38 L-24 31 L-34 23 L-49 23 L-44 11 L-55 5Z" fill="url(#fur)" stroke="#141a24" stroke-width="3.4" stroke-linejoin="round"/>
+    <path d="M-36-29 Q-19-49-7-39 L0-47 L11-38 Q30-45 38-27 Q16-32 4-23 Q-18-33-36-29Z" fill="#77808b" opacity=".35"/>
+    <path d="M-45 0 Q-34-16-13-9 L0-2 Q15-15 37-6 L49 2 Q41 27 17 29 Q0 34-20 29 Q-43 24-45 0Z" fill="url(#muzzle)" stroke="#28313b" stroke-width="2"/>
+    <path d="M-43-9 Q-33-23-14-19 Q-8-14-11-9 Q-22-2-40-8Z M12-10 Q12-23 34-21 Q45-16 44-9 Q27-1 12-10Z" fill="#171e26"/>
+    <path d="M-39-12 Q-28-20-16-15 Q-28-10-39-12Z M16-15 Q31-21 41-12 Q29-10 16-15Z" fill="#df7e39" opacity=".5"/>
+    <ellipse cx="-25" cy="-14" rx="9" ry="5.4" fill="url(#eyes)"/>
+    <ellipse cx="27" cy="-14" rx="9" ry="5.4" fill="url(#eyes)"/>
+    <ellipse cx="-24" cy="-14" rx="2.5" ry="4.3" fill="#191721"/>
+    <ellipse cx="28" cy="-14" rx="2.5" ry="4.3" fill="#191721"/>
+    <circle cx="-28" cy="-16" r="1.7" fill="#fff0c0"/><circle cx="24" cy="-16" r="1.7" fill="#fff0c0"/>
+    <path d="M-38-24 Q-27-29-15-22 M15-22 Q28-30 40-24" fill="none" stroke="#222732" stroke-width="5" stroke-linecap="round"/>
+    <path d="M-10 6 Q0-1 10 6 L4 13 Q0 17-5 13Z" fill="#151b22" stroke="#11161d" stroke-width="1.6"/>
+    <ellipse cx="-4" cy="7" rx="2.3" ry=".9" fill="#9da4a8" opacity=".55"/>
+    <path d="M-12 17 Q0 26 12 17" fill="none" stroke="#1b1d23" stroke-width="3.6" stroke-linecap="round"/>
+    <path d="M-35 14 L-42 25 L-27 21 M35 14 L42 25 L27 21" fill="#3a424d" opacity=".8"/>
+    <path d="M-13-41 L-6-50 L0-40 L6-50 L15-39" fill="none" stroke="#9296a1" opacity=".35" stroke-width="3"/>
+  </g>
+</defs>
+<!-- no background: usable as an alpha sprite -->
+<ellipse cx="184" cy="282" rx="118" ry="10" fill="#050c13" opacity=".17"/>
+<!-- tail -->
+<path d="M265 230 Q309 231 322 204 Q333 180 312 176 Q293 175 298 193 Q303 200 308 193" fill="none" stroke="#171c25" stroke-width="36" stroke-linecap="round"/>
+<path d="M268 225 Q305 224 316 202 Q322 189 309 188" fill="none" stroke="#343d4a" stroke-width="25" stroke-linecap="round"/>
+<path d="M303 176 L318 181 L327 191 L310 194Z" fill="#5e4542"/>
+<!-- back haunches -->
+<path d="M75 230 Q54 180 92 153 Q115 133 147 169 L219 167 Q258 133 285 175 Q309 220 283 264 L95 264Z" fill="url(#body)" stroke="#111b25" stroke-width="5"/>
+<path d="M98 179 L79 168 L91 195 L74 199 L92 221" fill="#343c47" stroke="#141d25" stroke-width="2"/>
+<path d="M251 177 L274 163 L266 198 L285 197 L268 228" fill="#303945" stroke="#141d25" stroke-width="2"/>
+<!-- belly -->
+<path d="M135 174 Q181 141 232 180 Q240 225 219 259 L136 256 Q119 221 135 174Z" fill="#3c4551"/>
+<path d="M155 186 L142 222 L156 217 L153 245 L173 232 L183 264 L201 229 L218 245 L218 213 L232 219 L208 182" fill="#515760" opacity=".38"/>
+<!-- back legs -->
+<path d="M103 212 Q81 208 75 244 Q65 260 91 271 L128 267 Q139 259 126 241Z M253 211 Q273 212 280 244 Q290 262 264 272 L230 268 Q218 254 233 240Z" fill="#252d39" stroke="#141b25" stroke-width="4"/>
+<!-- front paws -->
+<path d="M131 190 Q115 217 116 251 Q107 275 138 274 L163 270 Q172 263 164 248 L158 203Z M202 202 Q190 224 196 252 Q187 274 215 274 L244 269 Q251 262 240 247 L232 198Z" fill="url(#body)" stroke="#161f29" stroke-width="4"/>
+<g fill="none" stroke="#131c24" stroke-width="3.4" stroke-linecap="round"><path d="M133 256 L130 271 M147 254 L148 272 M216 253 L214 271 M229 253 L232 269 M91 257 L88 271 M105 259 L106 270 M263 259 L266 270"/></g>
+<g fill="#c8794a" opacity=".9"><ellipse cx="125" cy="269" rx="4" ry="3"/><ellipse cx="141" cy="270" rx="4" ry="3"/><ellipse cx="219" cy="270" rx="4" ry="3"/><ellipse cx="236" cy="267" rx="4" ry="3"/></g>
+<!-- fur necks and two secondary heads -->
+<path d="M100 174 Q79 159 86 133 L113 112 L142 125 L151 193 L131 186 L123 205Z M218 192 L219 129 L255 113 L279 131 Q287 167 259 181 L243 200Z" fill="#28313d" stroke="#17212a" stroke-width="3"/>
+<g transform="translate(93 132) rotate(-10) scale(.76)"><use xlink:href="#head"/>
+  <!-- playful left head tongue -->
+  <path d="M-4 23 Q-13 37-2 43 Q8 40 5 23Z" fill="#e87683" stroke="#b84962" stroke-width="1"/>
+  <path d="M0 29 L-1 38" stroke="#b84962" stroke-width="1.2"/>
+</g>
+<g transform="translate(267 134) rotate(9) scale(.77)"><use xlink:href="#head"/></g>
+<!-- teal scarf strips -->
+<path d="M120 173 L129 204 L139 190 L145 224 L160 187Z M211 177 L209 215 L224 198 L235 222 L238 177Z" fill="url(#cloth)" stroke="#17474e" stroke-width="2"/>
+<path d="M128 185 L136 202 M229 181 L225 207" stroke="#9fe6b9" stroke-width="1.8" opacity=".5"/>
+<!-- center chest -->
+<path d="M162 147 Q182 128 199 147 L222 182 L206 210 L182 222 L154 204 L142 177Z" fill="#3f4753"/>
+<path d="M145 170 Q185 195 217 166" fill="none" stroke="#251a20" stroke-width="14"/>
+<path d="M145 170 Q185 195 217 166" fill="none" stroke="url(#gold)" stroke-width="9" stroke-dasharray="12 3"/>
+<!-- hero head -->
+<g transform="translate(183 110) scale(1.16)"><use xlink:href="#head"/></g>
+<!-- ornament and collar chain -->
+<path d="M135 185 Q182 217 229 184" fill="none" stroke="#110f18" stroke-width="13"/>
+<path d="M135 183 Q182 217 229 183" fill="none" stroke="url(#gold)" stroke-width="8" stroke-dasharray="13 4"/>
+<ellipse cx="183" cy="207" rx="20" ry="22" fill="#171f2b" stroke="#845331" stroke-width="4"/>
+<ellipse cx="183" cy="207" rx="16" ry="18" fill="#482b24" stroke="url(#gold)" stroke-width="4"/>
+<path d="M183 193 L183 220 M172 200 L183 193 L194 200 M174 200 L174 210 M192 200 L192 210" fill="none" stroke="#ffc06b" stroke-width="3.8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M174 201 L171 205 M192 201 L196 205" stroke="#fa874a" stroke-width="1.5"/>
+<!-- soft ember accents -->
+<g fill="#fd9a4b" opacity=".75"><circle cx="86" cy="220" r="2"/><circle cx="272" cy="212" r="1.6"/><circle cx="242" cy="155" r="1.3"/></g>
+</svg>
