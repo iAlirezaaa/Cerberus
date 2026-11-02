@@ -183,6 +183,36 @@ class Vault:
         finally:
             temp.unlink(missing_ok=True)
 
+    def add_bytes(self, data: bytes, *, name: str = "capture.png",
+                  source: str = "drop") -> dict[str, Any]:
+        """Capture bytes (e.g. a dropped image) without executing them."""
+        if not isinstance(data, bytes) or not data:
+            raise CaptureError("Binary capture must contain bytes")
+        if len(data) > MAX_FILE_BYTES:
+            raise CaptureError("Binary capture exceeds 50 MiB")
+        digest = hashlib.sha256(data).hexdigest()
+        checksum = hashlib.sha256(("file\0" + digest).encode()).hexdigest()
+        existing = self.db.execute("SELECT * FROM items WHERE checksum=?", (checksum,)).fetchone()
+        if existing is not None:
+            return dict(existing)
+        name = Path(name).name or "capture.bin"
+        suffix = Path(name).suffix.lower()
+        if not re.fullmatch(r"\.[a-z0-9]{1,10}", suffix):
+            suffix = ".bin"
+        directory = self.files_dir / digest[:2]
+        directory.mkdir(parents=True, exist_ok=True)
+        stored = directory / (digest + suffix)
+        fd, temp_name = tempfile.mkstemp(prefix=".capture-", dir=directory)
+        try:
+            with os.fdopen(fd, "wb") as output:
+                output.write(data)
+            os.replace(temp_name, stored)
+            return self._insert(kind="file", title=name, original_name=name,
+                                content="", stored_path=str(stored),
+                                source=source, checksum=checksum)
+        finally:
+            Path(temp_name).unlink(missing_ok=True)
+
     def list(self, *, limit: int = 50) -> list[dict[str, Any]]:
         limit = max(1, min(int(limit), 500))
         return [dict(r) for r in self.db.execute(
