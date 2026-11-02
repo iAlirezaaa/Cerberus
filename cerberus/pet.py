@@ -4,9 +4,26 @@ from __future__ import annotations
 import math
 import time
 
-from PySide6.QtCore import QPoint, QPointF, QRectF, Qt, QTimer, Signal
-from PySide6.QtGui import QColor, QCursor, QPainter, QPen, QPolygonF
+from PySide6.QtCore import QBuffer, QIODevice, QPoint, QPointF, QRectF, Qt, QTimer, Signal
+from PySide6.QtGui import QColor, QCursor, QImage, QPainter, QPen, QPolygonF
 from PySide6.QtWidgets import QApplication, QWidget
+
+
+
+def mime_image_png(mime) -> bytes | None:
+    """Encode a Qt image payload into portable PNG bytes."""
+    if not mime.hasImage():
+        return None
+    image = mime.imageData()
+    if hasattr(image, "toImage"):
+        image = image.toImage()
+    if not isinstance(image, QImage) or image.isNull():
+        return None
+    buffer = QBuffer()
+    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+    if not image.save(buffer, "PNG"):
+        return None
+    return bytes(buffer.data())
 
 
 class CerberusPet(QWidget):
@@ -65,7 +82,7 @@ class CerberusPet(QWidget):
 
     def dragEnterEvent(self, event) -> None:
         mime = event.mimeData()
-        if mime.hasUrls() or mime.hasText():
+        if mime.hasUrls() or mime.hasText() or mime.hasImage():
             event.acceptProposedAction()
 
     def dragMoveEvent(self, event) -> None:
@@ -85,6 +102,11 @@ class CerberusPet(QWidget):
         elif mime.hasText():
             self.capture_requested.emit("text", mime.text())
             event.acceptProposedAction()
+        elif mime.hasImage():
+            png = mime_image_png(mime)
+            if png:
+                self.capture_requested.emit("image", png)
+                event.acceptProposedAction()
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
