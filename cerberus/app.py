@@ -225,7 +225,7 @@ def main() -> int:
     app = QApplication(sys.argv)
     app.setApplicationName("Cerberus")
     app.setQuitOnLastWindowClosed(False)
-    Controller(app)
+    controller = Controller(app)
     return app.exec()
 
 
