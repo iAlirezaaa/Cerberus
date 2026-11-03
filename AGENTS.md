@@ -90,3 +90,10 @@ See docs/AGENT_HANDOFF.md for scope, acceptance checks and explicit known gaps.
 ## Completion report format
 
 Summarize: Changed / Why / Tests run + results / Commit or PR URL / Known failures & risks / Next best task. Distinguish implemented code, CI results and real-device verification. Do not write "perfect" or "production-ready" without evidence.
+
+### Animation asset handoff (2026-11-03)
+
+- The user-approved generated GIFs, all 16 RGBA PNG frames, two original sheets and five concept sheets now live in `assets/animations/` and `assets/concepts/`. The GIF alpha issue was corrected; they contain transparent background pixels.
+- `assets/animations/animation-pack.json` is an **optional** v1 frame-pack compatible with `CERBERUS_ASSET_PACK`; do NOT replace the app's current default pack without real desktop QA. These sequence frames carry some generated smoke/glow edge artifacts; review on both light and dark desktops.
+- For production animation prefer per-frame PNG alpha over GIF one-bit transparency. Validate loop behavior, silhouette stability, timing, memory and cursor hit testing. Refer to `assets/animations/README.md`.
+- Never substitute generated concept sheets for real alpha sprites; preserve source PNG frames. The ZIP is built from tracked sources using `scripts/package_animation_assets.py` (avoid committing duplicate ZIP binaries to git).

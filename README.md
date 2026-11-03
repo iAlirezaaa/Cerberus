@@ -18,6 +18,21 @@ An animated, local-first desktop companion that catches text, URLs and files you
 
 </div>
 
+
+## Generated Cerberus animation assets
+
+The **original AI-generated GIFs and PNG sprite frames** are included in this repository (not external links). They have transparent backgrounds. The GIF format uses one-bit transparency; use the original RGBA PNG frames when you need smooth glows and alpha edges.
+
+| Hades portal entrance | Bored / looks around |
+| --- | --- |
+| ![Cerberus appearing through Hades portal](assets/animations/cerberus_portal_enter.gif) | ![Cerberus bored look-around loop](assets/animations/cerberus_bored_lookaround.gif) |
+
+- [Both GIFs, 16 individual PNG frames, source sprite sheets and a loadable animation-pack manifest](assets/animations/README.md)
+- [Five additional character and product concept sheets](assets/concepts/README.md)
+- The bundled app continues using its existing production sprite by default. **These two newly imported sequences are optional art assets**, not a claim that arbitrary global selection capture or fully rigged animation is already shipped.
+- To preview the new frame-based animations in the app, set `CERBERUS_ASSET_PACK` to the absolute path of `assets/animations/animation-pack.json` before launching `cerberus-desktop`. The external pack overrides the default sprite and is best regarded as experimental.
+- To package all repository artwork into a ZIP, run `python scripts/package_animation_assets.py` or get the `Cerberus-visual-assets` artifact from the **Animation Assets** workflow.
+
 ## What is Cerberus?
 
 Cerberus is a playful desktop pet with a real job: capturing information. Drag text, a link, a local file or an image onto the three-headed hellhound. It catches the item, enters a short Hades-portal animation, and saves it into your **local**, searchable memory vault.

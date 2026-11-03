@@ -116,3 +116,11 @@ A work unit is complete only when its source change, regression tests, documenta
 ## 9. Agent continuation prompt
 
 "Read AGENTS.md, docs/AGENT_HANDOFF.md, docs/PRIVACY.md, LICENSE and NOTICE; inspect the current main branch and CI first. Improve the highest-priority unverified Windows desktop interaction issue, preserving the existing SQLite schema, transparent Cerberus identity, opt-in collection and Apache-2.0 terms. Work in a narrow branch, write tests and update docs. Run available checks, publish only when requested, and report exactly what passed and what could not be verified."
+
+## 10. Newly imported generated animation assets (2026-11-03)
+
+Two eight-frame sequences are now versioned in `assets/animations/`: a Hades portal entrance and a bored/look-around idle. Sources include 16 RGBA PNG frames, two sprite sheets and repaired transparent GIFs. Five earlier AI-generated brand/character concept sheets are in `assets/concepts/`. GitHub's README previews the GIFs.
+
+**Runtime distinction:** These images are not automatically the default on-screen character. An experimental optional frame manifest at `assets/animations/animation-pack.json` can be activated with `CERBERUS_ASSET_PACK`; existing bundled `cerberus/assets/animation-pack.json` remains unchanged. The generated sheets have semi-transparent magical smoke and visible edge spill; validate alpha on real light/dark desktops before recommending the alternate pack as default. GIFs are convenient previews; RGBA PNG frames are the preferred renderer inputs.
+
+CI asset packaging uses `scripts/package_animation_assets.py` and uploads a generated ZIP artifact rather than committing a second copy of the entire asset tree. Do not change the existing Apache-2.0 license or other project policies without the maintainer's explicit approval.
