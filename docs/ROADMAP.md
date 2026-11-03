@@ -23,6 +23,7 @@ The completed boxes describe source-code features, not installer-quality guarant
 - [x] Bounded, local PNG animation-pack manifest and state-frame playback support
 - [x] Procedural sprite transforms: idle breathing, portal, dash, catch, celebrate, play, wake, sleep
 - [x] Tray wake/play/sleep/guard controls, three sizes and reduced-motion mode
+- [x] Branded searchable archive with live totals, item details, bounded local image previews and manual JSON export
 - [ ] Authored state frame sequences and full layered sprite atlas: articulated run, leap, chew, independent heads/legs/tail, fail
 - [ ] Pixel-level click-through around mascot and multi-monitor HiDPI
 - [ ] Cursor follow, idle curiosity, random reactions, custom skins

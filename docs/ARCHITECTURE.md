@@ -8,7 +8,7 @@ Build a desktop-native-feeling information companion that is delightful when act
 
 - **Capture adapters:** Qt drag/drop for text, URLs and files; explicit clipboard capture; CLI commands. All adapters normalize inputs through Vault.
 - **Storage core:** Python standard library, SQLite WAL, FTS5 external-content search with LIKE fallback, content-addressed file copies. No Qt import in the core.
-- **Desktop shell:** PySide6 frameless translucent topmost window, transparent PNG mascot and SVG fallback, optional bounded PNG frame packs, time-limited animation, tray controls and search UI.
+- **Desktop shell:** PySide6 frameless translucent topmost window, transparent PNG mascot and SVG fallback, optional bounded PNG frame packs, time-limited animation, tray controls and branded searchable archive UI.
 - **Preferences:** JSON under user app data. Clipboard capture OFF by default.
 - **Interface:** Human-oriented GUI and machine-oriented CLI share one database format.
 
@@ -31,6 +31,7 @@ User drag or explicit copy action -> validate type/size -> compute hash -> dedup
 - Transparent margins still may receive pointer clicks; pixel-level input hit testing requires a native adapter.
 - Imported files are not text-extracted. Search includes names, stored texts and URLs.
 - The local vault is not encrypted at rest; do not store credentials.
+- Archive image previews read local image files only and reject dimensions above a fixed pixel budget before decoding.
 - Actual Windows/macOS/Linux GUI runs and packaging remain to be validated.
 - A Python/Qt GUI has a larger baseline memory footprint than an optimized native Rust app; benchmark before rewriting.
 

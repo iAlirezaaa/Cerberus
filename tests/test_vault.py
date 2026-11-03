@@ -101,6 +101,21 @@ class VaultTests(unittest.TestCase):
             self.vault.add_text(f"unique item {i}")
         self.assertEqual(len(self.vault.list(limit=2)), 2)
 
+    def test_archive_stats_count_kinds_and_empty_vault(self):
+        self.assertEqual(self.vault.stats(), {
+            "total": 0, "by_kind": {"text": 0, "url": 0, "file": 0},
+            "latest_created_at": None,
+        })
+        self.vault.add_text("A report note")
+        self.vault.add_url("https://example.org")
+        source = self.root / "report.png"
+        source.write_bytes(b"bounded fake image payload")
+        self.vault.add_file(source)
+        stats = self.vault.stats()
+        self.assertEqual(stats["total"], 3)
+        self.assertEqual(stats["by_kind"], {"text": 1, "url": 1, "file": 1})
+        self.assertIsNotNone(stats["latest_created_at"])
+
 
 if __name__ == "__main__":
     unittest.main()

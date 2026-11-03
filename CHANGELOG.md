@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — branded visual archive
+
+- Reworked the vault window into a dark ember Cerberus archive with live totals, searchable item list, capture detail cards and bounded local image thumbnails.
+- Added a manual JSON export action and Qt-independent vault summary statistics.
+- Verified archive search, stats and capture details in offscreen GUI and vault tests.
+
 ## Unreleased — generated raster character and animation packs
 
 - Added generated alpha-transparent PNG character art as the primary desktop sprite, plus run, carry, sleep and guard poses; retained the original SVG as fallback.

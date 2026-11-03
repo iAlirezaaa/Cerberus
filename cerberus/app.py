@@ -4,11 +4,12 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-from PySide6.QtCore import Qt, QUrl
-from PySide6.QtGui import QAction, QColor, QDesktopServices, QIcon, QPainter, QPixmap
+from PySide6.QtCore import QSize, Qt, QUrl
+from PySide6.QtGui import QAction, QColor, QDesktopServices, QIcon, QImageReader, QPainter, QPixmap
 from PySide6.QtWidgets import (
-    QApplication, QHBoxLayout, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QMenu, QMessageBox, QPushButton, QSystemTrayIcon, QVBoxLayout, QWidget,
+    QApplication, QFileDialog, QFrame, QHBoxLayout, QLabel, QLineEdit, QListWidget,
+    QListWidgetItem, QMenu, QMessageBox, QPushButton, QSystemTrayIcon,
+    QVBoxLayout, QWidget,
 )
 
 from .pet import CerberusPet, mime_image_png
@@ -37,36 +38,116 @@ class VaultWindow(QWidget):
     def __init__(self, vault: Vault) -> None:
         super().__init__()
         self.vault = vault
-        self.setWindowTitle("Cerberus — Memory Vault")
-        self.resize(640, 470)
+        self.setWindowTitle("Cerberus — Memory Archive")
+        self.resize(920, 640)
+        self.setMinimumSize(720, 500)
         self.setStyleSheet("""
-            QWidget { background: #121d25; color: #e8e5dc; font-size: 13px; }
-            QLineEdit, QListWidget { background: #1b2b33; border: 1px solid #34515a;
-              border-radius: 8px; padding: 9px; }
-            QPushButton { background: #255759; border-radius: 8px; padding: 9px 14px; }
-            QPushButton:hover { background: #327579; }
+            QWidget { background: #100d11; color: #eee7df; font-size: 13px; }
+            QLabel#eyebrow { color: #f08a55; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
+            QLabel#title { color: #fff2df; font-size: 26px; font-weight: 700; }
+            QLabel#muted { color: #a99b98; }
+            QFrame#statCard, QFrame#detailCard { background: #19151b; border: 1px solid #3a2930; border-radius: 12px; }
+            QLabel#statValue { color: #ffc27c; font-size: 22px; font-weight: 700; }
+            QLabel#statLabel { color: #b8a8a1; font-size: 11px; }
+            QLineEdit, QListWidget, QTextEdit { background: #171319; border: 1px solid #49333a;
+              border-radius: 9px; padding: 10px; selection-background-color: #6e342d; }
+            QListWidget::item { padding: 10px 8px; border-bottom: 1px solid #2a2028; }
+            QListWidget::item:selected { background: #302027; border-radius: 6px; color: #ffd5a2; }
+            QPushButton { background: #592d2a; border: 1px solid #a34e38; border-radius: 8px; padding: 9px 14px; }
+            QPushButton:hover { background: #793d30; }
+            QPushButton#secondary { background: #211a22; border-color: #4b3741; }
+            QPushButton#secondary:hover { background: #33232b; }
         """)
         layout = QVBoxLayout(self)
-        header = QLabel("CERBERUS  /  THE VAULT")
-        header.setStyleSheet("color: #f0b36b; font-weight: bold; font-size: 19px;")
-        layout.addWidget(header)
+        layout.setContentsMargins(24, 22, 24, 20)
+        layout.setSpacing(14)
+        eyebrow = QLabel("CERBERUS  /  PRIVATE MEMORY")
+        eyebrow.setObjectName("eyebrow")
+        layout.addWidget(eyebrow)
+        title_row = QHBoxLayout()
+        title_block = QVBoxLayout()
+        title = QLabel("The Archive")
+        title.setObjectName("title")
+        subtitle = QLabel("Everything you entrust to your guardian, gathered in one place.")
+        subtitle.setObjectName("muted")
+        title_block.addWidget(title)
+        title_block.addWidget(subtitle)
+        title_row.addLayout(title_block, 1)
+        export_button = QPushButton("Export archive JSON")
+        export_button.setObjectName("secondary")
+        export_button.clicked.connect(self.export_archive)
+        title_row.addWidget(export_button, 0, Qt.AlignmentFlag.AlignBottom)
+        layout.addLayout(title_row)
+
+        stats_row = QHBoxLayout()
+        self.stat_labels: dict[str, QLabel] = {}
+        for key, label in (("total", "MEMORIES GUARDED"), ("text", "TEXT NOTES"), ("file", "FILES & IMAGES")):
+            card = QFrame()
+            card.setObjectName("statCard")
+            card_layout = QVBoxLayout(card)
+            card_layout.setContentsMargins(14, 10, 14, 10)
+            value = QLabel("0")
+            value.setObjectName("statValue")
+            caption = QLabel(label)
+            caption.setObjectName("statLabel")
+            card_layout.addWidget(value)
+            card_layout.addWidget(caption)
+            stats_row.addWidget(card)
+            self.stat_labels[key] = value
+        stats_row.addStretch(1)
+        layout.addLayout(stats_row)
+
         self.search_box = QLineEdit()
         self.search_box.setPlaceholderText("Search your saved memories…")
         self.search_box.textChanged.connect(self.refresh)
         layout.addWidget(self.search_box)
+
+        content_row = QHBoxLayout()
         self.items = QListWidget()
         self.items.itemDoubleClicked.connect(self.open_selected)
-        layout.addWidget(self.items, 1)
+        self.items.currentItemChanged.connect(self.show_details)
+        content_row.addWidget(self.items, 3)
+        detail = QFrame()
+        detail.setObjectName("detailCard")
+        detail_layout = QVBoxLayout(detail)
+        detail_layout.setContentsMargins(16, 16, 16, 16)
+        self.preview = QLabel("Select a memory to inspect it")
+        self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.preview.setMinimumHeight(170)
+        self.preview.setStyleSheet("background:#110e13; border-radius:9px; color:#8e7c7c; padding:10px;")
+        self.preview.setWordWrap(True)
+        self.detail_title = QLabel("Your memories")
+        self.detail_title.setWordWrap(True)
+        self.detail_title.setStyleSheet("font-size:17px;font-weight:700;color:#ffe3bf;")
+        self.detail_meta = QLabel("Choose an item from the archive")
+        self.detail_meta.setObjectName("muted")
+        self.detail_meta.setWordWrap(True)
+        self.detail_body = QLabel("A private collection, stored locally on this device.")
+        self.detail_body.setWordWrap(True)
+        self.detail_body.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
+        self.detail_body.setStyleSheet("color:#d3c8c2; line-height:1.35;")
+        detail_layout.addWidget(self.preview, 2)
+        detail_layout.addWidget(self.detail_title)
+        detail_layout.addWidget(self.detail_meta)
+        detail_layout.addWidget(self.detail_body, 3)
+        content_row.addWidget(detail, 2)
+        layout.addLayout(content_row, 1)
+
         row = QHBoxLayout()
         for label, callback in [
             ("Copy text / URL", self.copy_selected),
             ("Open saved file", self.open_selected),
             ("Delete", self.delete_selected),
-            ("Refresh", self.refresh),
         ]:
             button = QPushButton(label)
+            button.setObjectName("secondary" if label != "Delete" else "")
             button.clicked.connect(callback)
             row.addWidget(button)
+        row.addStretch(1)
+        refresh_button = QPushButton("Refresh")
+        refresh_button.setObjectName("secondary")
+        refresh_button.clicked.connect(self.refresh)
+        row.addWidget(refresh_button)
         layout.addLayout(row)
         self.refresh()
 
@@ -78,6 +159,10 @@ class VaultWindow(QWidget):
         selected = self.selected()
         selected_id = selected["id"] if selected else None
         self.items.clear()
+        stats = self.vault.stats()
+        self.stat_labels["total"].setText(str(stats["total"]))
+        self.stat_labels["text"].setText(str(stats["by_kind"]["text"]))
+        self.stat_labels["file"].setText(str(stats["by_kind"]["file"]))
         for item in self.vault.search(self.search_box.text()):
             display = f'[{item["kind"].upper()}]  {item["title"]}    ·    {item["created_at"][:16]}'
             widget_item = QListWidgetItem(display)
@@ -85,6 +170,58 @@ class VaultWindow(QWidget):
             self.items.addItem(widget_item)
             if selected_id == item["id"]:
                 self.items.setCurrentItem(widget_item)
+        if self.items.currentItem() is None and self.items.count():
+            self.items.setCurrentRow(0)
+        elif self.items.currentItem() is None:
+            self.show_details(None, None)
+
+    def show_details(self, current: QListWidgetItem | None, *_: object) -> None:
+        item = self.vault.get(current.data(Qt.ItemDataRole.UserRole)) if current else None
+        if not item:
+            self.detail_title.setText("Your memories")
+            self.detail_meta.setText("Choose an item from the archive")
+            self.detail_body.setText("A private collection, stored locally on this device.")
+            self.preview.setPixmap(QPixmap())
+            self.preview.setText("Select a memory to inspect it")
+            return
+
+        self.detail_title.setText(item["title"])
+        self.detail_meta.setText(f'{item["kind"].upper()}  ·  {item["created_at"][:19].replace("T", " ")}\nSource: {item["source"]}')
+        if item["kind"] in ("text", "url"):
+            content = item["content"]
+            self.detail_body.setText(content[:4000] + ("\n… preview truncated" if len(content) > 4000 else ""))
+        else:
+            self.detail_body.setText(f'Original name: {item.get("original_name") or item["title"]}\nStored in your local Cerberus archive.')
+        self.preview.setPixmap(QPixmap())
+        self.preview.setText("MEMORY PREVIEW" if item["kind"] in ("text", "url") else "FILE ATTACHMENT  ·  OPEN MANUALLY")
+        stored = item.get("stored_path")
+        if item["kind"] == "file" and stored:
+            path = Path(stored)
+            in_vault = path.resolve().is_relative_to(self.vault.files_dir.resolve())
+            if in_vault and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"} and path.is_file():
+                reader = QImageReader(str(path))
+                dimensions = reader.size()
+                if dimensions.isValid() and dimensions.width() * dimensions.height() <= 16_000_000:
+                    target = QSize(self.preview.width() - 20, 190)
+                    scaled = dimensions.scaled(target, Qt.AspectRatioMode.KeepAspectRatio)
+                    reader.setScaledSize(scaled)
+                    image = reader.read()
+                    if not image.isNull():
+                        self.preview.setPixmap(QPixmap.fromImage(image).scaled(
+                            self.preview.size(), Qt.AspectRatioMode.KeepAspectRatio,
+                            Qt.TransformationMode.SmoothTransformation))
+                        self.preview.setText("")
+
+    def export_archive(self, *_: object) -> None:
+        path, _ = QFileDialog.getSaveFileName(self, "Export Cerberus archive", "cerberus-export.json", "JSON files (*.json)")
+        if not path:
+            return
+        try:
+            self.vault.export_json(path)
+        except OSError as exc:
+            QMessageBox.warning(self, "Export failed", str(exc))
+            return
+        QMessageBox.information(self, "Archive exported", "Archive metadata and text were exported. Attached file bytes remain in the local vault.")
 
     def copy_selected(self, *_: object) -> None:
         item = self.selected()

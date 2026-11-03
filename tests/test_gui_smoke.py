@@ -67,6 +67,14 @@ class GuiSmokeTests(unittest.TestCase):
                 controller.open_vault()
                 self.app.processEvents()
                 self.assertEqual(controller.window.items.count(), 2)
+                self.assertEqual(controller.window.stat_labels["total"].text(), "2")
+                self.assertEqual(controller.window.detail_title.text(), "captured-image.png")
+                self.assertIn("FILE ATTACHMENT", controller.window.preview.text())
+                controller.window.search_box.setText("visual")
+                self.app.processEvents()
+                self.assertEqual(controller.window.items.count(), 1)
+                self.assertIn("visual smoke-test", controller.window.detail_body.text())
+                self.assertEqual(controller.window.preview.text(), "MEMORY PREVIEW")
             finally:
                 if controller is not None:
                     controller.tray.hide()

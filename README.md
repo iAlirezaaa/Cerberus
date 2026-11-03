@@ -30,6 +30,7 @@ Inspired by desktop pets such as Shimeji, Cerberus adds an information capture a
 - **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; generated transparent raster poses for idle, running, catching/carrying, guard and sleep, with portal, wake, play and celebration motion. The original SVG remains a fallback.
 - **Feed it by dragging:** text, HTTP(S) links, local files and dropped image data are captured.
 - **Portable memory vault:** local SQLite database with FTS5 full-text indexing when available and an indexed fallback; files are **copied**, never moved from their source.
+- **Visual memory archive:** branded ember-dark vault with live capture totals, searchable memory list, selected-item details, bounded local image preview and manual JSON export.
 - **Find what it swallowed:** desktop search window and command-line search/list/export/delete commands.
 - **Clipboard capture (opt-in only):** disabled by default; when enabled, newly copied clipboard text/URLs/images can be captured with an animation. **Selecting/highlighting text alone does not trigger capture in this MVP.**
 - **System tray controls:** show/hide, open vault, manually feed clipboard, toggle clipboard capture, summon, play, guard, standby/sleep, resize (three sizes), reduced-motion mode and quit.
