@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — Apache-2.0 licensing and maintainer skill
+
+- Applied the official Apache License 2.0 to the current repository revision and added a NOTICE covering attribution, historical grants, marks and third-party components.
+- Replaced source-available/paid-use licensing documentation with current Apache-2.0 terms, preserving the grants attached to previously released revisions.
+- Added a repository-discoverable Cerberus maintainer skill and updated package license metadata and repository badges.
+
 ## Unreleased — branded visual archive
 
 - Reworked the vault window into a dark ember Cerberus archive with live totals, searchable item list, capture detail cards and bounded local image thumbnails.

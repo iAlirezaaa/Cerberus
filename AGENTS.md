@@ -69,7 +69,7 @@ On Windows, set QT_QPA_PLATFORM=offscreen with PowerShell's env syntax first. CI
 - Respect reduced motion, low idle CPU, multi-monitor constraints, ordinary taskbar/window interactions and correct drag/drop acceptance.
 - Be honest about native limitations: transparent margins currently lack true pixel-perfect click-through; self-rendered motion is NOT a skeletal/3D rig.
 - Preserve the three-head silhouette and original asset rights. Do not copy proprietary artwork from other games or desktop pet projects.
-- No unapproved licensing changes, telemetry, new paid API requirement, pricing or commerce integration. The project now uses a custom source-available personal/paid-production license. Preserve previous MIT rights and license notices; consult LICENSE and docs/LICENSING.md.
+- Do not change the project license without explicit repository-owner direction. The current revision uses Apache-2.0; retain third-party notices, asset provenance and historical grants for earlier MIT/custom-license revisions. Consult LICENSE, NOTICE and docs/LICENSING.md. Do not add telemetry, a paid API requirement, pricing or commerce integration without authorization.
 
 ## Coding / testing expectations
 

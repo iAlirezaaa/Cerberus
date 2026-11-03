@@ -107,7 +107,7 @@ Plan safe document extraction/OCR, richer FTS filters, tags, optional local sema
 - Content-addressed file copies avoid modifying original data; large and malicious inputs need bounded parsing if new document extraction is added.
 - Local-first and no network access are product constraints, not limitations to remove casually.
 - Clipboard collection is currently opt-in and can still capture sensitive copied information; exclusion filters would be valuable.
-- A source-available commercial license governs new work where rights permit, but historical MIT grants remain. There is no implemented license payment/activation system; do not add a paywall without explicit instructions.
+- Apache-2.0 governs this repository revision where project rights permit; retain third-party notices and historical grants for earlier MIT/custom-license revisions. Do not add a paywall or change the license without explicit repository-owner direction.
 
 ## 8. Definition of done
 
@@ -115,4 +115,4 @@ A work unit is complete only when its source change, regression tests, documenta
 
 ## 9. Agent continuation prompt
 
-"Read AGENTS.md, docs/AGENT_HANDOFF.md, docs/PRIVACY.md and LICENSE; inspect the current main branch and CI first. Improve the highest-priority unverified Windows desktop interaction issue, preserving the existing SQLite schema, transparent Cerberus identity, opt-in collection and source-available license. Work in a narrow branch, write tests and update docs. Run available checks, publish the commit/PR, and report exactly what passed and what could not be verified."
+"Read AGENTS.md, docs/AGENT_HANDOFF.md, docs/PRIVACY.md, LICENSE and NOTICE; inspect the current main branch and CI first. Improve the highest-priority unverified Windows desktop interaction issue, preserving the existing SQLite schema, transparent Cerberus identity, opt-in collection and Apache-2.0 terms. Work in a narrow branch, write tests and update docs. Run available checks, publish only when requested, and report exactly what passed and what could not be verified."

@@ -14,6 +14,7 @@ An animated, local-first desktop companion that catches text, URLs and files you
 ![Animated Cerberus desktop pet preview rendered from the application](preview/cerberus-animation-preview.gif)
 
 [![CI](https://github.com/iAlirezaaa/Cerberus/actions/workflows/ci.yml/badge.svg)](https://github.com/iAlirezaaa/Cerberus/actions/workflows/ci.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 
 </div>
 
@@ -75,7 +76,7 @@ From PowerShell in the repo root (requires Python on the build machine):
 .\scripts\build_windows.ps1
 ~~~
 
-Output: dist/Cerberus.exe. This currently produces an **unsigned** build; it may trigger Windows SmartScreen. No executable is published as a verified release yet. Packaging needs on-device validation.
+Output: `dist/Cerberus.exe` with `LICENSE` and `NOTICE` alongside it. This currently produces an **unsigned** build; it may trigger Windows SmartScreen. No executable is published as a verified release yet. Packaging needs on-device validation.
 
 ### Try the vault from a terminal
 
@@ -126,6 +127,10 @@ Native selected-text detection **with explicit user consent**, cursor-relative p
 
 Issues and pull requests are welcome. Please include reproduction steps and OS details for platform-specific bugs. Run `python -m unittest discover -s tests` before opening a PR.
 
-**License:** [Cerberus Personal & Paid Production License](LICENSE) — free for qualifying personal/noncommercial use; a separately negotiated **paid written license** is required for commercial or heavy production use. Cerberus is **source-available, not OSI open-source**. Earlier MIT grants remain valid for already released revisions. See [Licensing](docs/LICENSING.md) and [راهنمای فارسی مجوز](docs/LICENSING_FA.md).
+**License:** [Apache License 2.0](LICENSE). Commercial and noncommercial use, modification, and redistribution are permitted under its terms. Previous grants for older releases remain in effect; third-party components keep their own licenses. See [Licensing](docs/LICENSING.md), [NOTICE](NOTICE), and [راهنمای فارسی مجوز](docs/LICENSING_FA.md).
 
 **Agent handoff:** [AGENTS.md](AGENTS.md) · [Engineering handoff](docs/AGENT_HANDOFF.md).
+
+**Codex skill:** [Cerberus maintainer skill](.agents/skills/cerberus-maintainer/SKILL.md) contains the repo-specific architecture, privacy, validation, asset and licensing rules for future coding agents.
+
+**Contributing:** see [CONTRIBUTING.md](CONTRIBUTING.md) for Apache-2.0 contribution terms and development checks.
