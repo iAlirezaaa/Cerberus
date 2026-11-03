@@ -82,8 +82,8 @@ class CerberusPet(QWidget):
         self._drag_offset: QPoint | None = None
         self._press_position: QPoint | None = None
         self._dragged = False
-        self._message = "Feed me something!"
-        self._message_until = time.monotonic() + 4
+        self._message = ""
+        self._message_until = 0.0
         self._timer = QTimer(self)
         self._timer.timeout.connect(self._tick)
         self._timer.setInterval(180)
@@ -359,18 +359,19 @@ class CerberusPet(QWidget):
                                  int(y + 6 * math.sin(a)))
 
         if state == "sleep":
-            painter.setPen(QColor("#ffd9aa"))
-            font = painter.font()
-            font.setBold(True)
-            font.setPointSize(20)
-            painter.setFont(font)
-            painter.drawText(QRectF(220, 47, 85, 55), Qt.AlignmentFlag.AlignCenter, "Zzz")
+            # Vector dream bubbles stay readable even when platform fonts are absent.
+            painter.setBrush(QColor(255, 190, 105, 130))
+            painter.setPen(QPen(QColor("#ffc76d"), 1.4))
+            painter.drawEllipse(QRectF(234, 100, 6, 6))
+            painter.drawEllipse(QRectF(247, 80, 10, 10))
+            painter.drawEllipse(QRectF(266, 53, 15, 15))
         elif now < self._message_until:
             painter.setBrush(QColor(17, 24, 34, 225))
             painter.setPen(QPen(QColor("#e59b55"), 1.5))
             painter.drawRoundedRect(QRectF(52, 1, 245, 34), 13, 13)
             painter.setPen(QColor("#ffe4bc"))
             font = painter.font()
+            font.setFamily("Arial")
             font.setPointSize(10)
             font.setBold(True)
             painter.setFont(font)
