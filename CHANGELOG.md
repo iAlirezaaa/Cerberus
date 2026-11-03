@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased — license and agent operations (2026-11-03)
+
+- Added a repository-wide AGENTS.md, an engineering handoff and a continuation prompt for future coding agents.
+- Adopted the prospective Cerberus Personal & Paid Production source-available license for qualifying new revisions/material; personal use is free, business and objectively defined heavy production use require a separate paid written agreement.
+- Documented the non-retroactive status of earlier MIT grants, pricing/activation not implemented, licensing FAQ and Persian summary.
+- Updated package metadata, README and contributor guidance to avoid misleading MIT/open-source claims.
+
+
 ## 0.2.0-dev — screen-ready guardian character (2026-11-03)
 
 ### Added

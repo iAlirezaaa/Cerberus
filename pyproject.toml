@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "A three-headed desktop pet that catches and remembers your information"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
+license = {file = "LICENSE"}
 authors = [{name = "Cerberus contributors"}]
 keywords = ["desktop-pet", "second-brain", "sqlite", "productivity", "pyside6"]
 dependencies = []

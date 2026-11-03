@@ -109,7 +109,7 @@ The MVP uses a **Python core + PySide6 desktop shell** for fast iteration and a 
 - **Desktop:** `cerberus/app.py` — tray, vault search, clipboard integration.
 - **CLI:** `cerberus/cli.py` — scriptable memory operations.
 
-See [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), and [Privacy](docs/PRIVACY.md).
+See [Architecture](docs/ARCHITECTURE.md), [Roadmap](docs/ROADMAP.md), [Privacy](docs/PRIVACY.md), [Licensing](docs/LICENSING.md), and the [agent handoff](docs/AGENT_HANDOFF.md).
 
 ## Safety & privacy
 
@@ -123,4 +123,6 @@ Native selected-text detection **with explicit user consent**, cursor-relative p
 
 Issues and pull requests are welcome. Please include reproduction steps and OS details for platform-specific bugs. Run `python -m unittest discover -s tests` before opening a PR.
 
-**License:** [MIT](LICENSE)
+**License:** [Cerberus Personal & Paid Production License](LICENSE) — free for qualifying personal/noncommercial use; a separately negotiated **paid written license** is required for commercial or heavy production use. Cerberus is **source-available, not OSI open-source**. Earlier MIT grants remain valid for already released revisions. See [Licensing](docs/LICENSING.md) and [راهنمای فارسی مجوز](docs/LICENSING_FA.md).
+
+**Agent handoff:** [AGENTS.md](AGENTS.md) · [Engineering handoff](docs/AGENT_HANDOFF.md).

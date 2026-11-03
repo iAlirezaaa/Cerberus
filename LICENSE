@@ -1,21 +1,120 @@
-MIT License
+CERBERUS PERSONAL & PAID PRODUCTION LICENSE
+Version 1.0 — 2026-11-03
 
-Copyright (c) 2026 Cerberus contributors
+Copyright (c) 2026 iAlirezaaa and contributors.
+All rights reserved except as expressly granted below.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+IMPORTANT: THIS IS A SOURCE-AVAILABLE LICENSE, NOT AN OSI-APPROVED
+OPEN-SOURCE LICENSE. Commercial and Heavy Production Use require a
+separate paid written license.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. DEFINITIONS
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+"Software" means the Cerberus source code, executable code, bundled
+original artwork, documentation and modifications distributed in a
+revision that includes this license, but excludes third-party
+components governed by their own licenses.
+
+"Licensor" means the copyright holder(s) authorized to license the
+relevant portions of the Software.
+
+"Personal Use" means use by an individual acting solely for their own
+noncommercial hobby, learning, experimentation, personal organization
+or personal research. Work performed for an employer, client,
+organization, business or revenue-generating activity is not Personal
+Use, even if the individual uses their own computer.
+
+"Commercial Use" means use of the Software in connection with any
+business, paid work, client service, organizational workflow, product,
+commercial service, or activity intended to generate revenue, directly
+or indirectly. This includes internal business use and use by a
+for-profit or nonprofit organization in an operational workflow.
+
+"Heavy Production Use" means ANY of the following, regardless of
+whether the use generates revenue:
+(a) more than 10,000 newly saved capture items in any rolling 30-day
+    period across one person's Cerberus installations;
+(b) more than 10 GiB of newly imported attachment data in any rolling
+    30-day period across one person's Cerberus installations; or
+(c) shared or multi-user deployment, centralized ingestion or an
+    unattended data-processing service used by more than one person.
+Duplicate captures that do not create a new record do not count
+toward (a). A GiB equals 1,073,741,824 bytes.
+
+2. FREE PERSONAL LICENSE
+
+Subject to this license, the Licensor grants each individual a
+nonexclusive, worldwide, royalty-free right to download, inspect,
+run, copy and modify the Software for Personal Use, provided that the
+use does not meet the Heavy Production Use definition.
+
+The individual may publish and share source-code modifications or
+unmodified copies at no charge for noncommercial purposes only, if
+the full license text, copyright notices, attribution and notices of
+changes are preserved, and recipients receive no more rights than
+those granted here. The Licensor's brand identity may not be used
+to imply that a derivative is an official Cerberus release.
+
+3. PAID LICENSE REQUIRED
+
+A separate paid written agreement with the appropriate Licensor is
+required BEFORE any Commercial Use, Heavy Production Use, paid
+redistribution, Software-as-a-Service offering, embedding in a paid
+product, or commercial distribution of the Software or a derivative.
+
+Payment, price, term, number of users, permitted workloads,
+redistribution and support are governed only by that separately
+signed agreement. This free license does not grant these rights,
+and no price or checkout process is implied by this document.
+For licensing requests, contact the repository owner through
+their GitHub profile or the licensing channel they explicitly publish.
+
+4. RESTRICTIONS
+
+Except as expressly permitted or required by applicable law:
+- Do not resell, sublicense, monetize, host for others, or distribute
+  the Software as part of a paid product without written permission.
+- Do not remove copyright, authorship or license notices.
+- Do not present a fork, modified version or bundled release as
+  official or endorsed by the Licensor.
+- Do not impose terms on recipients that purport to override the
+  restrictions in this license for licensed portions of the Software.
+
+5. CONTRIBUTIONS AND THIRD-PARTY RIGHTS
+
+Contributors retain ownership of their contributions. A contributor
+must have the necessary rights to submit work under this project's
+then-current licensing terms; separately licensed components must
+retain their original license notices. Nothing here relicenses
+material that the Licensor does not own or have the right to license.
+
+6. TERMINATION
+
+Rights under the free grant terminate if the licensee violates these
+terms and fails to cure the violation within 30 days after receiving
+notice of it. A paid agreement, if any, governs its own termination
+provisions. This does not affect statutory rights.
+
+7. NO WARRANTY; LIABILITY
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE AND NONINFRINGEMENT. TO THE EXTENT PERMITTED BY
+APPLICABLE LAW, THE LICENSOR IS NOT LIABLE FOR DAMAGES ARISING FROM
+USING OR INABILITY TO USE THE SOFTWARE.
+
+8. PREVIOUS MIT RELEASES AND HISTORICAL RIGHTS
+
+Earlier Cerberus revisions were publicly distributed with an MIT
+license. Those existing MIT grants remain valid for copies and
+portions already licensed under MIT; this license does NOT revoke or
+retroactively restrict them. This document applies prospectively to
+newly released revisions and new material only to the extent the
+relevant copyright holder is entitled to apply it. Rights in earlier
+MIT-licensed code and third-party dependencies remain governed by
+their respective existing licenses. A later revision may include
+material with separate notices; those notices take precedence for
+that material.
+
+This license is a project-specific license, not legal advice. Legal
+review is recommended before paid distribution.

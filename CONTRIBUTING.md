@@ -22,3 +22,8 @@ The storage package must remain GUI-independent. The desktop layer should not wr
 ## Art assets
 
 Only submit original art, properly licensed assets with attribution, or assets explicitly owned by the contributor. Do not introduce copyrighted characters from other desktop pet projects.
+
+
+## Licensing of contributions
+
+Current Cerberus revisions use the project-specific [Personal & Paid Production License](LICENSE), not MIT or an OSI-approved open-source license. Do not submit third-party code or assets you lack rights to license. When contributing, explain any imported code, its copyright owners and exact license. A pull request must not imply the project can relicense code it does not control. Historical MIT grants remain in place; see [Licensing](docs/LICENSING.md). If a change affects commercial terms, obtain maintainer approval before merging.
