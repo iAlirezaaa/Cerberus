@@ -12,11 +12,15 @@ class MotionTests(unittest.TestCase):
         self.assertEqual(m.phase, "dash")
         m.update(now=1.12)
         self.assertEqual(m.phase, "catch")
-        m.update(now=1.79)
+        m.update(now=1.62)
+        self.assertEqual(m.phase, "carry")
+        m.update(now=1.9)
+        self.assertEqual(m.phase, "carry")
+        m.update(now=2.16)
         self.assertEqual(m.phase, "celebrate")
-        m.update(now=2.50)
+        m.update(now=2.90)
         self.assertEqual(m.phase, "celebrate")
-        m.update(now=2.60)
+        m.update(now=3.00)
         self.assertEqual(m.phase, "idle")
 
     def test_idle_enters_standby_and_wakes(self):
@@ -36,7 +40,7 @@ class MotionTests(unittest.TestCase):
     def test_reduced_motion_skips_portal_and_dash(self):
         m = MotionMachine(reduced_motion=True)
         m.capture(now=10)
-        self.assertEqual(m.phase, "catch")
+        self.assertEqual(m.phase, "carry")
         m.update(now=10.7)
         self.assertEqual(m.phase, "celebrate")
 

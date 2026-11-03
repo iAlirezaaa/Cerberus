@@ -8,7 +8,8 @@ import time
 DURATIONS = {
     "portal": (0.55, "dash"),
     "dash": (0.55, "catch"),
-    "catch": (0.65, "celebrate"),
+    "catch": (0.50, "carry"),
+    "carry": (0.55, "celebrate"),
     "celebrate": (0.8, "idle"),
     "play": (1.15, "idle"),
     "wake": (0.7, "idle"),
@@ -18,7 +19,7 @@ DURATIONS = {
 
 @dataclass
 class MotionMachine:
-    """Timeline-based behavior: idle -> sleep, or portal -> dash -> catch -> celebrate."""
+    """Timeline-based behavior: idle -> sleep, or portal -> dash -> catch -> carry -> celebrate."""
 
     standby_after: float = 95.0
     phase: str = "idle"
@@ -40,7 +41,7 @@ class MotionMachine:
             self.last_active_at = stamp
 
     def capture(self, *, now: float | None = None) -> None:
-        self.transition("catch" if self.reduced_motion else "portal", now=now)
+        self.transition("carry" if self.reduced_motion else "portal", now=now)
 
     def touch(self, *, now: float | None = None) -> None:
         stamp = time.monotonic() if now is None else now

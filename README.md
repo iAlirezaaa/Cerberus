@@ -27,7 +27,7 @@ Inspired by desktop pets such as Shimeji, Cerberus adds an information capture a
 
 ## Features in this version
 
-- **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; generated transparent raster character with idle/breathing, portal, dash, catch, celebrate, play and sleeping reactions. The original SVG remains a fallback.
+- **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; generated transparent raster poses for idle, running, catching/carrying, guard and sleep, with portal, wake, play and celebration motion. The original SVG remains a fallback.
 - **Feed it by dragging:** text, HTTP(S) links, local files and dropped image data are captured.
 - **Portable memory vault:** local SQLite database with FTS5 full-text indexing when available and an indexed fallback; files are **copied**, never moved from their source.
 - **Find what it swallowed:** desktop search window and command-line search/list/export/delete commands.
@@ -57,7 +57,7 @@ On macOS/Linux, activate with `source .venv/bin/activate`.
 | Action | What Cerberus does |
 | --- | --- |
 | Start `cerberus-desktop` | Appears as a transparent always-on-top character near the bottom-right of the primary monitor |
-| Drag text, URL, image or file onto the character | Captures locally, runs portal > dash > catch > celebrate |
+| Drag text, URL, image or file onto the character | Captures locally, runs portal > dash > catch > carry > celebrate |
 | Single-click | Bounces / reacts to being petted |
 | Double-click | Opens the searchable vault |
 | Left-drag | Repositions the companion on screen |
@@ -88,14 +88,14 @@ python -m cerberus export ./cerberus-export.json
 python -m unittest discover -s tests -v
 ```
 
-**Character assets:** [guardian-ember.png](cerberus/assets/guardian-ember.png) is the bundled alpha-transparent raster character. [guardian.svg](cerberus/assets/guardian.svg) remains the fallback. Qt preloads the default sprite and optional state frames, then applies the deterministic motion timeline and portal, paper-capture and particle effects. The pack manifest is [animation-pack.json](cerberus/assets/animation-pack.json); its format and bounds are documented in [docs/ANIMATION_PACK.md](docs/ANIMATION_PACK.md). Set `CERBERUS_ASSET_PACK` to a local manifest path to load a custom pack. The motion pipeline lives in [motion.py](cerberus/motion.py).
+**Character assets:** `guardian-ember.png`, `guardian-run.png`, `guardian-carry.png`, `guardian-sleep.png`, and `guardian-guard.png` are generated alpha-transparent raster poses. [guardian.svg](cerberus/assets/guardian.svg) remains the fallback. Qt preloads the default sprite and state images, then applies the deterministic motion timeline and portal, paper-capture and particle effects. The pack manifest is [animation-pack.json](cerberus/assets/animation-pack.json); its format and bounds are documented in [docs/ANIMATION_PACK.md](docs/ANIMATION_PACK.md). Set `CERBERUS_ASSET_PACK` to a local manifest path to load a custom pack. The motion pipeline lives in [motion.py](cerberus/motion.py).
 
 Run `python -m cerberus --help` for all commands. Override the data directory with `CERBERUS_HOME`.
 
 ## How it works
 
 1. Drop text, URLs, a file or an image **onto Cerberus** (or use the CLI).
-2. Cerberus plays a portal/catch reaction and writes the item to the local vault.
+2. Cerberus plays a portal/catch/carry reaction and writes the item to the local vault.
 3. Double-click the pet or use the tray menu to search and retrieve it.
 4. Single-click to pet Cerberus, drag the pet with the left mouse button to reposition it, or right-click for the tray actions. After roughly 95 seconds without interaction it settles into a sleeping standby pose; hover or interact to wake it.
 

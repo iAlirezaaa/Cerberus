@@ -14,7 +14,7 @@ A small, expressive three-headed mythical dog lives as a transparent on-screen W
 - Local SQLite database with text and HTTP(S) URLs, copied file attachments and PNG image payloads; deduplication, capped file/text sizes, search via FTS5 where available, JSON metadata export, delete and CLI commands.
 - Transparent topmost frameless PySide6 pet, original vector fallback, generated transparent raster character and Qt image caching.
 - Drag/drop to pet, pet/reposition via mouse, double-click vault, right-click menu and tray controls.
-- MotionMachine transitions: idle -> sleep after roughly 95 seconds; portal -> dash -> catch -> celebrate -> idle after successful capture; play, wake, alert and guard. Reduced-motion behavior.
+- MotionMachine transitions: idle -> sleep after roughly 95 seconds; portal -> dash -> catch -> carry -> celebrate -> idle after successful capture; play, wake, alert and guard. Reduced-motion behavior.
 - Manual and optional clipboard capture (OFF by default), no cloud account or built-in telemetry.
 - Offscreen rendering script that produces state PNGs and an animated GIF.
 - Unit tests for core/settings/motion and a Windows Qt offscreen smoke test. Cross-platform core CI and Windows unsigned EXE build workflow exist.

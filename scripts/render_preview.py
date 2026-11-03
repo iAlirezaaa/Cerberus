@@ -47,7 +47,7 @@ def snapshot(phase: str, fraction: float = 0.0) -> Image.Image:
     return image
 
 
-states = ["idle", "portal", "dash", "catch", "celebrate", "sleep"]
+states = ["idle", "portal", "dash", "catch", "carry", "celebrate", "play", "sleep", "wake", "guard", "alert"]
 tiles = []
 for phase in states:
     frame = snapshot(phase, 0.45 if phase in DURATIONS else 0)
@@ -55,15 +55,18 @@ for phase in states:
     tiles.append(frame)
 
 width, height = tiles[0].size
-sheet = Image.new("RGBA", (width * 3, height * 2), (0, 0, 0, 0))
+columns = 3
+rows = (len(tiles) + columns - 1) // columns
+sheet = Image.new("RGBA", (width * columns, height * rows), (0, 0, 0, 0))
 for i, tile in enumerate(tiles):
-    sheet.alpha_composite(tile, ((i % 3) * width, (i // 3) * height))
+    sheet.alpha_composite(tile, ((i % columns) * width, (i // columns) * height))
 sheet.save(OUT / "cerberus-state-sheet.png")
 
-# A short loop of authentic GUI frames: wake -> portal -> dash -> catch -> celebrate -> rest.
+# A short loop of authentic GUI frames: wake -> portal -> dash -> catch -> carry -> celebrate -> rest.
 frames = []
 for phase, count in [("wake", 5), ("portal", 6), ("dash", 8),
-                     ("catch", 7), ("celebrate", 8), ("idle", 10), ("sleep", 10)]:
+                     ("catch", 7), ("carry", 5), ("celebrate", 8),
+                     ("idle", 10), ("sleep", 10)]:
     for i in range(count):
         progress = i / max(1, count - 1)
         frames.append(snapshot(phase, progress))

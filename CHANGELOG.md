@@ -2,7 +2,7 @@
 
 ## Unreleased — generated raster character and animation packs
 
-- Added generated alpha-transparent PNG character art as the primary desktop sprite, retaining the original SVG as fallback.
+- Added generated alpha-transparent PNG character art as the primary desktop sprite, plus run, carry, sleep and guard poses; retained the original SVG as fallback.
 - Added a bounded local animation-pack manifest supporting per-state PNG frames on the deterministic motion timeline.
 - Preserved reduced-motion behavior and documented that authored state sequences and independent body-part animation remain future work.
 

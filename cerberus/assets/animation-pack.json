@@ -2,5 +2,12 @@
   "format": "cerberus-animation-pack",
   "version": 1,
   "default": "guardian-ember.png",
-  "states": {}
+  "states": {
+    "dash": { "frames": ["guardian-run.png"], "fps": 8, "loop": false },
+    "play": { "frames": ["guardian-run.png"], "fps": 7, "loop": false },
+    "sleep": { "frames": ["guardian-sleep.png"], "fps": 1, "loop": true },
+    "carry": { "frames": ["guardian-carry.png"], "fps": 4, "loop": true },
+    "guard": { "frames": ["guardian-guard.png"], "fps": 1, "loop": true },
+    "alert": { "frames": ["guardian-guard.png"], "fps": 3, "loop": false }
+  }
 }

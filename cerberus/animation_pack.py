@@ -13,7 +13,7 @@ MAX_FRAME_BYTES = 16 * 1024 * 1024
 MAX_DIMENSION = 4096
 ALLOWED_STATES = {
     "idle", "sleep", "wake", "portal", "dash", "catch",
-    "celebrate", "play", "alert", "guard",
+    "celebrate", "play", "alert", "guard", "carry",
 }
 
 

@@ -25,6 +25,7 @@ from .animation_pack import (
 BASE_WIDTH = 340
 BASE_HEIGHT = 310
 MAX_PACK_PIXELS = 32_000_000
+MAX_RENDER_DIMENSION = 768
 
 
 def mime_image_png(mime) -> bytes | None:
@@ -74,6 +75,12 @@ def _load_png(data: bytes, name: str) -> QPixmap:
         raise ValueError(f"Animation frame dimensions exceed {MAX_DIMENSION}px: {name}")
     if not pixmap.toImage().hasAlphaChannel():
         raise ValueError(f"Animation frame must support transparency: {name}")
+    if pixmap.width() > MAX_RENDER_DIMENSION or pixmap.height() > MAX_RENDER_DIMENSION:
+        pixmap = pixmap.scaled(
+            MAX_RENDER_DIMENSION, MAX_RENDER_DIMENSION,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
     return pixmap
 
 
@@ -389,9 +396,13 @@ class CerberusPet(QWidget):
                 tilt = 1.15 * math.sin(now * .85)
                 sy = 1.0 + .010 * math.sin(now * 2.2)
             elif state == "sleep":
-                sy = .83 + .004 * math.sin(now * .8)
-                sx = 1.065
-                dy = 9
+                if state in self._state_frames:
+                    sy = 1.0 + .006 * math.sin(now * .8)
+                    dy = 9
+                else:
+                    sy = .83 + .004 * math.sin(now * .8)
+                    sx = 1.065
+                    dy = 9
             elif state == "portal":
                 sx = sy = .40 + .60 * min(1, progress * 1.25)
                 dy = -12 * math.sin(progress * math.pi)
@@ -410,6 +421,9 @@ class CerberusPet(QWidget):
             elif state == "play":
                 dy = -13 * abs(math.sin(progress * math.pi * 2))
                 tilt = 8 * math.sin(progress * math.pi * 3)
+            elif state == "carry":
+                dy = -4 * abs(math.sin(progress * math.pi * 2))
+                tilt = 2 * math.sin(progress * math.pi * 2)
             elif state == "wake":
                 sy = .85 + .15 * progress
                 dy = 9 * (1 - progress)
@@ -419,7 +433,7 @@ class CerberusPet(QWidget):
                 sy = 1.01
         else:
             if state == "sleep":
-                sy = .9
+                sy = 1.0 if state in self._state_frames else .9
                 dy = 5
 
         painter.save()
