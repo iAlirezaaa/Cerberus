@@ -1,0 +1,35 @@
+name: Animation Assets
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "assets/animations/**"
+      - "assets/concepts/**"
+      - "scripts/package_animation_assets.py"
+      - ".github/workflows/animation-assets.yml"
+      - "LICENSE"
+      - "NOTICE"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build complete artwork ZIP
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate files and assemble ZIP
+        run: python scripts/package_animation_assets.py
+      - name: Upload visual asset bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: Cerberus-visual-assets
+          path: dist/Cerberus-visual-assets.zip
+          retention-days: 30
+          if-no-files-found: error
