@@ -219,6 +219,20 @@ class Vault:
             "SELECT * FROM items ORDER BY id DESC LIMIT ?", (limit,)
         )]
 
+    def stats(self) -> dict[str, Any]:
+        """Return a compact local archive summary for dashboards and reports."""
+        rows = self.db.execute(
+            "SELECT kind, COUNT(*) AS total FROM items GROUP BY kind"
+        ).fetchall()
+        counts = {"text": 0, "url": 0, "file": 0}
+        counts.update({row["kind"]: int(row["total"]) for row in rows})
+        total = sum(counts.values())
+        latest = self.db.execute(
+            "SELECT created_at FROM items ORDER BY created_at DESC LIMIT 1"
+        ).fetchone()
+        return {"total": total, "by_kind": counts,
+                "latest_created_at": latest["created_at"] if latest else None}
+
     def search(self, query: str, *, limit: int = 50) -> list[dict[str, Any]]:
         limit = max(1, min(int(limit), 500))
         query = query.strip()

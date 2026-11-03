@@ -7,14 +7,14 @@
 
 A small, expressive three-headed mythical dog lives as a transparent on-screen Windows desktop pet. Users intentionally drop text, images, links or files onto it. Cerberus playfully reacts as if it catches the object, stores it locally, and can recall it through the vault search interface. The aesthetic is dark charcoal fur, amber eyes, teal accents, a golden collar/trident and a Hades portal. Standby must be charming, quiet and energy-conscious.
 
-**Do not confuse the concept sheets with shipped character art.** The actual packaged transparent sprite is cerberus/assets/guardian.svg. The application already renders it using Qt. The source is currently a single composited SVG with whole-image transforms, not a layered bone rig, 3D model or full frame-by-frame sprite atlas.
+**Do not confuse the concept sheets with shipped character art.** The packaged primary sprite is the generated transparent PNG `cerberus/assets/guardian-ember.png`; `guardian.svg` remains the fallback. The application renders the raster through Qt. The bundled art is one pose with whole-image transforms, not a layered bone rig, 3D model or full frame-by-frame sprite atlas.
 
 ## 2. What is already implemented
 
 - Local SQLite database with text and HTTP(S) URLs, copied file attachments and PNG image payloads; deduplication, capped file/text sizes, search via FTS5 where available, JSON metadata export, delete and CLI commands.
-- Transparent topmost frameless PySide6 pet, original vector mascot and Qt image caching.
+- Transparent topmost frameless PySide6 pet, original vector fallback, generated transparent raster character and Qt image caching.
 - Drag/drop to pet, pet/reposition via mouse, double-click vault, right-click menu and tray controls.
-- MotionMachine transitions: idle -> sleep after roughly 95 seconds; portal -> dash -> catch -> celebrate -> idle after successful capture; play, wake, alert and guard. Reduced-motion behavior.
+- MotionMachine transitions: idle -> sleep after roughly 95 seconds; portal -> dash -> catch -> carry -> celebrate -> idle after successful capture; play, wake, alert and guard. Reduced-motion behavior.
 - Manual and optional clipboard capture (OFF by default), no cloud account or built-in telemetry.
 - Offscreen rendering script that produces state PNGs and an animated GIF.
 - Unit tests for core/settings/motion and a Windows Qt offscreen smoke test. Cross-platform core CI and Windows unsigned EXE build workflow exist.
@@ -36,7 +36,10 @@ A small, expressive three-headed mythical dog lives as a transparent on-screen W
 - cerberus/motion.py: deterministic timing and state transitions; extend this before adding animation special cases to Qt paint.
 - cerberus/pet.py: overlay widget, SVG rendering, cursor-based summon and mouse/drop events.
 - cerberus/app.py: controller, system tray, opt-in clipboard, vault GUI.
-- cerberus/assets/guardian.svg: shipped transparent artwork; preserve or layer non-destructively.
+- cerberus/assets/guardian-ember.png: primary generated transparent character artwork.
+- cerberus/assets/guardian.svg: original transparent fallback artwork; preserve or layer non-destructively.
+- cerberus/assets/animation-pack.json and cerberus/animation_pack.py: bounded local PNG state-frame pack format and parser.
+- docs/ANIMATION_PACK.md: version 1 manifest format and resource limits.
 - scripts/render_preview.py: generates real, offscreen Qt frames.
 - tests/test_vault.py, tests/test_motion.py, tests/test_settings.py, tests/test_gui_smoke.py.
 - .github/workflows/ci.yml and windows-build.yml.
@@ -104,7 +107,7 @@ Plan safe document extraction/OCR, richer FTS filters, tags, optional local sema
 - Content-addressed file copies avoid modifying original data; large and malicious inputs need bounded parsing if new document extraction is added.
 - Local-first and no network access are product constraints, not limitations to remove casually.
 - Clipboard collection is currently opt-in and can still capture sensitive copied information; exclusion filters would be valuable.
-- A source-available commercial license governs new work where rights permit, but historical MIT grants remain. There is no implemented license payment/activation system; do not add a paywall without explicit instructions.
+- Apache-2.0 governs this repository revision where project rights permit; retain third-party notices and historical grants for earlier MIT/custom-license revisions. Do not add a paywall or change the license without explicit repository-owner direction.
 
 ## 8. Definition of done
 
@@ -112,4 +115,4 @@ A work unit is complete only when its source change, regression tests, documenta
 
 ## 9. Agent continuation prompt
 
-"Read AGENTS.md, docs/AGENT_HANDOFF.md, docs/PRIVACY.md and LICENSE; inspect the current main branch and CI first. Improve the highest-priority unverified Windows desktop interaction issue, preserving the existing SQLite schema, transparent Cerberus identity, opt-in collection and source-available license. Work in a narrow branch, write tests and update docs. Run available checks, publish the commit/PR, and report exactly what passed and what could not be verified."
+"Read AGENTS.md, docs/AGENT_HANDOFF.md, docs/PRIVACY.md, LICENSE and NOTICE; inspect the current main branch and CI first. Improve the highest-priority unverified Windows desktop interaction issue, preserving the existing SQLite schema, transparent Cerberus identity, opt-in collection and Apache-2.0 terms. Work in a narrow branch, write tests and update docs. Run available checks, publish only when requested, and report exactly what passed and what could not be verified."

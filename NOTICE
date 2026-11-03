@@ -1,0 +1,25 @@
+Cerberus
+Copyright 2026 Alireza Asgarpour and contributors.
+
+This distribution is licensed under the Apache License, Version 2.0.
+See the LICENSE file for the full license text.
+
+Project assets
+The Cerberus source tree includes original vector and generated raster
+artwork for the Cerberus character and identity. These project materials
+are offered under Apache-2.0 to the extent their respective rights holders
+have authority to license them. The Cerberus name and marks are not granted
+for use as trademarks or to imply endorsement; see section 6 of LICENSE.
+
+Historical releases
+Earlier Cerberus releases were distributed under MIT and under the
+Cerberus Personal & Paid Production License. Those grants remain effective
+for copies and releases that carried them. This repository revision also
+offers covered project materials under Apache-2.0 where the project
+maintainers hold the required rights.
+
+Third-party components
+Optional dependencies such as PySide6 are installed separately and retain
+their respective license terms. No third-party source code is intentionally
+vendored in this repository. Review dependency and asset provenance before
+redistributing a build that adds third-party material.

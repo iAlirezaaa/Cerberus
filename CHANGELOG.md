@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased — Apache-2.0 licensing and maintainer skill
+
+- Applied the official Apache License 2.0 to the current repository revision and added a NOTICE covering attribution, historical grants, marks and third-party components.
+- Replaced source-available/paid-use licensing documentation with current Apache-2.0 terms, preserving the grants attached to previously released revisions.
+- Added a repository-discoverable Cerberus maintainer skill and updated package license metadata and repository badges.
+
+## Unreleased — branded visual archive
+
+- Reworked the vault window into a dark ember Cerberus archive with live totals, searchable item list, capture detail cards and bounded local image thumbnails.
+- Added a manual JSON export action and Qt-independent vault summary statistics.
+- Verified archive search, stats and capture details in offscreen GUI and vault tests.
+
+## Unreleased — generated raster character and animation packs
+
+- Added generated alpha-transparent PNG character art as the primary desktop sprite, plus run, carry, sleep and guard poses; retained the original SVG as fallback.
+- Added a bounded local animation-pack manifest supporting per-state PNG frames on the deterministic motion timeline.
+- Preserved reduced-motion behavior and documented that authored state sequences and independent body-part animation remain future work.
+
 ## Unreleased — license and agent operations (2026-11-03)
 
 - Added a repository-wide AGENTS.md, an engineering handoff and a continuation prompt for future coding agents.

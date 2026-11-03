@@ -1,29 +1,30 @@
 # Contributing to Cerberus
 
-Cerberus is an early local-first desktop software prototype. Contributions to capture adapters, security, test coverage, accessibility and animation quality are welcome.
+Thanks for helping improve Cerberus. By submitting a pull request, you offer your contribution under the repository's Apache License 2.0, unless you clearly identify a separately licensed component and its terms before submission. You retain copyright in your contribution; no copyright assignment or CLA is currently required.
 
-## Development
+Cerberus is an early local-first desktop software prototype. Contributions to capture adapters, security, test coverage, accessibility, retrieval, and animation quality are welcome.
 
-1. Fork and clone the repository.
-2. Use Python 3.11+ and create a virtual environment.
-3. Install the GUI extras: python -m pip install -e ".[gui]"
-4. Run the CLI: python -m cerberus --help
-5. Run core tests: python -m unittest discover -s tests -v
-6. Run GUI smoke tests with QT_QPA_PLATFORM=offscreen (Windows CI also runs these).
+Only submit code, art, fonts, and documentation that you have the right to contribute. Include the source and license for third-party material and keep its notices intact. Mark modified files and preserve copyright and attribution notices as required by Apache-2.0. Do not imply that a fork is an official Cerberus release.
 
-## Pull requests
+## Development checks
 
-Keep changes focused. Add tests for persistence/capture behavior. Explain operating systems affected, UI screenshots if applicable, and how the behavior was tested. Avoid adding telemetry or remote services as implicit dependencies. Keep passwords and personal information out of test fixtures.
+Use Python 3.11 or newer and follow the setup in the [README](README.md). Before requesting review, run:
 
-## Architecture contract
+```powershell
+python -m compileall -q cerberus tests scripts
+python -m unittest discover -s tests -v
+```
 
-The storage package must remain GUI-independent. The desktop layer should not write directly to database tables. New capture sources must default to OFF unless explicitly triggered by the user; see docs/PRIVACY.md.
+For GUI changes, run the Qt smoke tests with `QT_QPA_PLATFORM=offscreen` and render the preview with `python scripts/render_preview.py` when the GUI dependencies and Pillow are installed. An offscreen pass does not prove native Windows desktop behavior; include OS and reproduction details for platform-specific changes.
+
+Keep capture explicit, local-first, and privacy-preserving. See [AGENTS.md](AGENTS.md), [Privacy](docs/PRIVACY.md), and the [Cerberus maintainer skill](.agents/skills/cerberus-maintainer/SKILL.md) for project-specific invariants.
+
+## Pull requests and architecture
+
+Keep changes focused. Add tests for persistence and capture behavior. Explain affected operating systems and test evidence; include screenshots for visible UI changes when practical. Keep passwords and personal information out of fixtures.
+
+The storage package must remain independent of Qt. The desktop layer uses the Vault API and must not write directly to database tables. New capture sources must be explicit or default OFF; see [Privacy](docs/PRIVACY.md).
 
 ## Art assets
 
-Only submit original art, properly licensed assets with attribution, or assets explicitly owned by the contributor. Do not introduce copyrighted characters from other desktop pet projects.
-
-
-## Licensing of contributions
-
-Current Cerberus revisions use the project-specific [Personal & Paid Production License](LICENSE), not MIT or an OSI-approved open-source license. Do not submit third-party code or assets you lack rights to license. When contributing, explain any imported code, its copyright owners and exact license. A pull request must not imply the project can relicense code it does not control. Historical MIT grants remain in place; see [Licensing](docs/LICENSING.md). If a change affects commercial terms, obtain maintainer approval before merging.
+Submit original art or material you have permission to redistribute. Include its source and license, preserve attribution, and do not add copyrighted characters from other desktop-pet projects without authorization.

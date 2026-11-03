@@ -1,13 +1,16 @@
 """Transparent animated Cerberus mascot for the user's actual desktop.
 
-The illustration is an original SVG sprite bundled with the package. A small
-state machine moves and scales it instead of re-rendering the vector every frame.
+The raster character and optional PNG frame sequences are preloaded once. A small
+state machine moves and scales them instead of decoding assets during painting.
 """
 from __future__ import annotations
 
 import math
+import os
+import struct
 import time
 from importlib import resources
+from pathlib import Path
 
 from PySide6.QtCore import QByteArray, QPoint, QRectF, Qt, QTimer, QBuffer, QIODevice, Signal
 from PySide6.QtGui import QColor, QCursor, QImage, QPainter, QPen, QPixmap
@@ -15,9 +18,14 @@ from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWidgets import QApplication, QWidget
 
 from .motion import MotionMachine
+from .animation_pack import (
+    MAX_DIMENSION, MAX_FRAME_BYTES, MAX_UNIQUE_FRAMES, FrameSequence, parse_manifest,
+)
 
 BASE_WIDTH = 340
 BASE_HEIGHT = 310
+MAX_PACK_PIXELS = 32_000_000
+MAX_RENDER_DIMENSION = 768
 
 
 def mime_image_png(mime) -> bytes | None:
@@ -52,6 +60,90 @@ def _sprite_pixmap() -> QPixmap:
     return pixmap
 
 
+def _load_png(data: bytes, name: str) -> QPixmap:
+    if not data or len(data) > MAX_FRAME_BYTES:
+        raise ValueError(f"Animation frame is empty or too large: {name}")
+    if len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
+        raise ValueError(f"Animation asset is not a valid PNG: {name}")
+    width, height = struct.unpack(">II", data[16:24])
+    if not width or not height or width > MAX_DIMENSION or height > MAX_DIMENSION:
+        raise ValueError(f"Animation frame dimensions exceed {MAX_DIMENSION}px: {name}")
+    pixmap = QPixmap()
+    if not pixmap.loadFromData(data, "PNG") or pixmap.isNull():
+        raise ValueError(f"Could not decode animation PNG: {name}")
+    if pixmap.width() > MAX_DIMENSION or pixmap.height() > MAX_DIMENSION:
+        raise ValueError(f"Animation frame dimensions exceed {MAX_DIMENSION}px: {name}")
+    if not pixmap.toImage().hasAlphaChannel():
+        raise ValueError(f"Animation frame must support transparency: {name}")
+    if pixmap.width() > MAX_RENDER_DIMENSION or pixmap.height() > MAX_RENDER_DIMENSION:
+        pixmap = pixmap.scaled(
+            MAX_RENDER_DIMENSION, MAX_RENDER_DIMENSION,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
+        )
+    return pixmap
+
+
+def _load_animation_pack() -> tuple[QPixmap, dict[str, tuple[tuple[QPixmap, ...], FrameSequence]], str]:
+    """Eagerly load a local pack; invalid optional packs fall back to the original SVG."""
+    override = os.environ.get("CERBERUS_ASSET_PACK")
+    try:
+        if override:
+            manifest_path = Path(override).expanduser().resolve()
+            if manifest_path.stat().st_size > 256 * 1024:
+                raise ValueError("Animation manifest is too large")
+            root = manifest_path.parent
+            manifest = parse_manifest(manifest_path.read_bytes())
+
+            def read_asset(name: str) -> bytes:
+                candidate = root / Path(*name.split("/"))
+                path = candidate.resolve()
+                if candidate.is_symlink() or not path.is_relative_to(root) or not path.is_file():
+                    raise ValueError(f"Animation asset is outside its pack: {name}")
+                if path.stat().st_size > MAX_FRAME_BYTES:
+                    raise ValueError(f"Animation frame is too large: {name}")
+                return path.read_bytes()
+        else:
+            root = resources.files("cerberus").joinpath("assets")
+            manifest = parse_manifest(root.joinpath("animation-pack.json").read_bytes())
+
+            def read_asset(name: str) -> bytes:
+                return root.joinpath(*name.split("/")).read_bytes()
+
+        names = {manifest.default}
+        for sequence in manifest.states.values():
+            names.update(sequence.frames)
+        if len(names) > MAX_UNIQUE_FRAMES:
+            raise ValueError("Animation pack contains too many unique frames")
+        cache: dict[str, QPixmap] = {}
+        total_pixels = 0
+
+        def load_asset(name: str) -> QPixmap:
+            nonlocal total_pixels
+            if name not in cache:
+                data = read_asset(name)
+                if (len(data) < 24 or data[:8] != b"\x89PNG\r\n\x1a\n"
+                        or data[12:16] != b"IHDR"):
+                    raise ValueError(f"Animation asset is not a valid PNG: {name}")
+                width, height = struct.unpack(">II", data[16:24])
+                total_pixels += width * height
+                if total_pixels > MAX_PACK_PIXELS:
+                    raise ValueError("Animation pack exceeds the decoded pixel budget")
+                cache[name] = _load_png(data, name)
+            return cache[name]
+
+        default = load_asset(manifest.default)
+        sequences: dict[str, tuple[tuple[QPixmap, ...], FrameSequence]] = {}
+        for state, sequence in manifest.states.items():
+            frames = tuple(load_asset(name) for name in sequence.frames)
+            if len({(frame.width(), frame.height()) for frame in frames}) != 1:
+                raise ValueError(f"All frames in {state} must use the same canvas")
+            sequences[state] = (frames, sequence)
+        return default, sequences, "raster-pack"
+    except (OSError, ValueError, TypeError, RuntimeError):
+        return _sprite_pixmap(), {}, "svg-fallback"
+
+
 class CerberusPet(QWidget):
     capture_requested = Signal(str, object)
     vault_requested = Signal()
@@ -76,7 +168,7 @@ class CerberusPet(QWidget):
         self.motion = MotionMachine(
             standby_after=standby_seconds, reduced_motion=reduced_motion
         )
-        self._sprite = _sprite_pixmap()
+        self._sprite, self._state_frames, self._sprite_source = _load_animation_pack()
         self._size = BASE_WIDTH
         self.setFixedSize(BASE_WIDTH, BASE_HEIGHT)
         self._drag_offset: QPoint | None = None
@@ -304,9 +396,13 @@ class CerberusPet(QWidget):
                 tilt = 1.15 * math.sin(now * .85)
                 sy = 1.0 + .010 * math.sin(now * 2.2)
             elif state == "sleep":
-                sy = .83 + .004 * math.sin(now * .8)
-                sx = 1.065
-                dy = 9
+                if state in self._state_frames:
+                    sy = 1.0 + .006 * math.sin(now * .8)
+                    dy = 9
+                else:
+                    sy = .83 + .004 * math.sin(now * .8)
+                    sx = 1.065
+                    dy = 9
             elif state == "portal":
                 sx = sy = .40 + .60 * min(1, progress * 1.25)
                 dy = -12 * math.sin(progress * math.pi)
@@ -325,6 +421,9 @@ class CerberusPet(QWidget):
             elif state == "play":
                 dy = -13 * abs(math.sin(progress * math.pi * 2))
                 tilt = 8 * math.sin(progress * math.pi * 3)
+            elif state == "carry":
+                dy = -4 * abs(math.sin(progress * math.pi * 2))
+                tilt = 2 * math.sin(progress * math.pi * 2)
             elif state == "wake":
                 sy = .85 + .15 * progress
                 dy = 9 * (1 - progress)
@@ -334,7 +433,7 @@ class CerberusPet(QWidget):
                 sy = 1.01
         else:
             if state == "sleep":
-                sy = .9
+                sy = 1.0 if state in self._state_frames else .9
                 dy = 5
 
         painter.save()
@@ -343,8 +442,15 @@ class CerberusPet(QWidget):
         painter.rotate(tilt)
         painter.scale(sx, sy)
         painter.translate(-170, -280)
-        painter.drawPixmap(QRectF(0, 33, 340, 257), self._sprite,
-                           QRectF(0, 0, 720, 600))
+        sprite = self._frame_for_state(state, now)
+        source = QRectF(sprite.rect())
+        bounds = QRectF(0, 33, BASE_WIDTH, 257)
+        scale = min(bounds.width() / source.width(), bounds.height() / source.height())
+        width, height = source.width() * scale, source.height() * scale
+        target = QRectF((BASE_WIDTH - width) / 2,
+                        bounds.top() + (bounds.height() - height) / 2,
+                        width, height)
+        painter.drawPixmap(target, sprite, source)
         painter.restore()
 
         if state == "catch" and not self.reduced_motion:
@@ -382,3 +488,19 @@ class CerberusPet(QWidget):
             painter.drawText(QRectF(60, 4, 228, 28),
                              Qt.AlignmentFlag.AlignCenter, label)
         painter.end()
+
+    def _frame_for_state(self, state: str, now: float) -> QPixmap:
+        """Select a preloaded atlas frame from the motion state's own timeline."""
+        entry = self._state_frames.get(state)
+        if entry is None:
+            return self._sprite
+        frames, sequence = entry
+        if self.reduced_motion or len(frames) == 1:
+            return frames[0]
+        elapsed = max(0.0, now - self.motion.entered_at)
+        index = int(elapsed * sequence.fps)
+        if sequence.loop:
+            index %= len(frames)
+        else:
+            index = min(index, len(frames) - 1)
+        return frames[index]
