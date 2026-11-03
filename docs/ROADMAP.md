@@ -18,10 +18,11 @@ The completed boxes describe source-code features, not installer-quality guarant
 
 ## v0.2 — playful desktop pet
 
-- [x] Original transparent three-headed SVG illustration displayed as an on-screen pet
+- [x] Original transparent three-headed SVG fallback and generated transparent PNG primary sprite
+- [x] Bounded, local PNG animation-pack manifest and state-frame playback support
 - [x] Procedural sprite transforms: idle breathing, portal, dash, catch, celebrate, play, wake, sleep
 - [x] Tray wake/play/sleep/guard controls, three sizes and reduced-motion mode
-- [ ] Full layered sprite atlas: articulated run, leap, chew, independent heads/legs/tail, fail
+- [ ] Authored state frame sequences and full layered sprite atlas: articulated run, leap, chew, independent heads/legs/tail, fail
 - [ ] Pixel-level click-through around mascot and multi-monitor HiDPI
 - [ ] Cursor follow, idle curiosity, random reactions, custom skins
 - [ ] Undo, tags, stronger search filters and feed preview

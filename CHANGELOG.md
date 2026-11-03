@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased — generated raster character and animation packs
+
+- Added generated alpha-transparent PNG character art as the primary desktop sprite, retaining the original SVG as fallback.
+- Added a bounded local animation-pack manifest supporting per-state PNG frames on the deterministic motion timeline.
+- Preserved reduced-motion behavior and documented that authored state sequences and independent body-part animation remain future work.
+
 ## Unreleased — license and agent operations (2026-11-03)
 
 - Added a repository-wide AGENTS.md, an engineering handoff and a continuation prompt for future coding agents.

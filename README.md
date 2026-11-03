@@ -9,7 +9,9 @@ An animated, local-first desktop companion that catches text, URLs and files you
 
 ![Cerberus mark](assets/cerberus-mark.svg)
 
-![Animated pet's original transparent three-headed character sprite](cerberus/assets/guardian.svg)
+![Cerberus's generated transparent three-headed character sprite](cerberus/assets/guardian-ember.png)
+
+![Animated Cerberus desktop pet preview rendered from the application](preview/cerberus-animation-preview.gif)
 
 [![CI](https://github.com/iAlirezaaa/Cerberus/actions/workflows/ci.yml/badge.svg)](https://github.com/iAlirezaaa/Cerberus/actions/workflows/ci.yml)
 
@@ -25,7 +27,7 @@ Inspired by desktop pets such as Shimeji, Cerberus adds an information capture a
 
 ## Features in this version
 
-- **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; original transparent vector character sprite with idle/breathing, portal, dash, catch, celebrate, play and sleeping reactions.
+- **Three-headed animated desktop pet:** translucent, frameless, always-on-top Qt overlay; generated transparent raster character with idle/breathing, portal, dash, catch, celebrate, play and sleeping reactions. The original SVG remains a fallback.
 - **Feed it by dragging:** text, HTTP(S) links, local files and dropped image data are captured.
 - **Portable memory vault:** local SQLite database with FTS5 full-text indexing when available and an indexed fallback; files are **copied**, never moved from their source.
 - **Find what it swallowed:** desktop search window and command-line search/list/export/delete commands.
@@ -62,7 +64,7 @@ On macOS/Linux, activate with `source .venv/bin/activate`.
 | Right-click or use tray menu | Summon, sleep, guard, play, show/hide, resize, reduced motion |
 | 95 seconds of inactivity | Enters an energy-saving sleeping stance (no data collection) |
 
-The SVG body currently animates as one rigless layer with expressive transforms and procedural FX. Independently articulated heads, paws and tail are planned for a future animation atlas. Transparent portions of the window are **not** native click-through yet.
+The bundled ember character is a generated transparent PNG. Motion currently combines whole-character transforms and procedural effects; independent head, paw and tail animation needs authored frame sequences. Transparent portions of the window are **not** native click-through yet.
 
 ### Optional standalone Windows .exe
 
@@ -86,7 +88,7 @@ python -m cerberus export ./cerberus-export.json
 python -m unittest discover -s tests -v
 ```
 
-**Character asset:** [guardian.svg](cerberus/assets/guardian.svg) is a standalone, alpha-transparent vector sprite, shipped inside the app. The Qt renderer caches it as a high-resolution image and applies deterministic time-based transforms plus portal, paper-capture and particle effects. The motion pipeline lives in [motion.py](cerberus/motion.py).
+**Character assets:** [guardian-ember.png](cerberus/assets/guardian-ember.png) is the bundled alpha-transparent raster character. [guardian.svg](cerberus/assets/guardian.svg) remains the fallback. Qt preloads the default sprite and optional state frames, then applies the deterministic motion timeline and portal, paper-capture and particle effects. The pack manifest is [animation-pack.json](cerberus/assets/animation-pack.json); its format and bounds are documented in [docs/ANIMATION_PACK.md](docs/ANIMATION_PACK.md). Set `CERBERUS_ASSET_PACK` to a local manifest path to load a custom pack. The motion pipeline lives in [motion.py](cerberus/motion.py).
 
 Run `python -m cerberus --help` for all commands. Override the data directory with `CERBERUS_HOME`.
 
