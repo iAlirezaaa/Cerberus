@@ -100,6 +100,10 @@ class GuiSmokeTests(unittest.TestCase):
         now = time.monotonic()
         self.assertTrue(pet._start_walk(now))
         self.assertEqual(pet._phase, "walk")
+        # It gets up first when the bridge clip exists, then walks.
+        self.assertIn(pet._visual_state("walk"), ("walk", "sit_to_run"))
+        pet._walk_hold_until = 0.0
+        pet._override = None
         self.assertEqual(pet._visual_state("walk"), "walk")
         start = pet.x()
         for _ in range(2000):

@@ -27,3 +27,8 @@ art/codex/manifest.json
 art/codex/last_message*.txt
 art/codex/prompt.txt
 art/codex/rejected/
+art/codex/processed/
+art/codex/logs/
+art/codex/provenance*.json
+art/codex/.round*_start
+art/codex/.qa_hash

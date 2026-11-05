@@ -37,8 +37,8 @@ from .animation_pack import (
 
 BASE_WIDTH = 340
 BASE_HEIGHT = 380
-# Budget for decoded frames after cropping (~4 bytes each): ~256 MB worst case.
-MAX_PACK_PIXELS = 64_000_000
+# Budget for decoded source frames (before cropping, ~4 bytes each).
+MAX_PACK_PIXELS = 96_000_000
 MAX_RENDER_DIMENSION = 768
 # GIF clips stand on this line (base coordinates) and are drawn at a fixed
 # source-pixel scale so every clip keeps the same character size.
@@ -356,7 +356,14 @@ def _load_animation_pack() -> tuple[_Clip, dict[str, _Clip], str]:
                 frames, delays, props = frames[::-1], delays[::-1], props[::-1]
             clips[state] = _Clip(frames, delays, sequence.loop, sequence.loop_from,
                                  sequence.scale, anchored, props)
-        if manifest.default.lower().endswith(".gif"):
+        idle = clips.get("idle")
+        if idle is not None and idle.anchored and manifest.default.lower().endswith(".png") \
+                and manifest.default in (states_first := {
+                    state: seq.frames[0] for state, seq in manifest.states.items() if seq.frames
+                }).values():
+            # Default pose = the idle clip's own cropped first frame (tray icon, bubble face).
+            default = _Clip(idle.frames[:1], idle.delays[:1], scale=idle.scale, anchored=True)
+        elif manifest.default.lower().endswith(".gif"):
             gif = load_gif(manifest.default)
             scale = next((clip.scale for clip in clips.values()
                           if clip.frames[0] is gif.frames[0]), 1.0)
@@ -1092,16 +1099,17 @@ class CerberusPet(QWidget):
                 self._fade_from = self._last_paint
                 self._fade_started = now
             self._last_paint_key = key
+            # New pose solid underneath, old pose fading out on top: the body never turns
+            # see-through, and switching clips blends instead of popping.
+            painter.drawPixmap(target, sprite, QRectF(sprite.rect()))
             fade = (now - self._fade_started) / FADE_SECONDS if self._fade_from else 1.0
             if fade < 1.0 and self._fade_from is not None:
                 old_sprite, old_rect = self._fade_from
-                painter.setOpacity(1.0 - fade)
+                painter.setOpacity((1.0 - fade) ** 1.5)
                 painter.drawPixmap(old_rect, old_sprite, QRectF(old_sprite.rect()))
-                painter.setOpacity(min(1.0, 0.35 + fade))
+                painter.setOpacity(1.0)
             else:
                 self._fade_from = None
-            painter.drawPixmap(target, sprite, QRectF(sprite.rect()))
-            painter.setOpacity(1.0)
             self._last_paint = (sprite, target)
             if self._carry is not None and clip.props and not self.reduced_motion:
                 box = clip.props[min(index, len(clip.props) - 1)]

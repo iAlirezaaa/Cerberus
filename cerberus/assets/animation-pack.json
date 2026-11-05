@@ -1,38 +1,115 @@
 {
   "format": "cerberus-animation-pack",
   "version": 2,
-  "default": "gifs/idle_breathe.gif",
+  "default": "clips/gif_idle_breathe/01.png",
   "states": {
     "idle": {
-      "gif": "gifs/idle_breathe.gif",
-      "loop": true
+      "loop": true,
+      "frames": [
+        "clips/gif_idle_breathe/01.png",
+        "clips/gif_idle_breathe/02.png",
+        "clips/gif_idle_breathe/03.png",
+        "clips/gif_idle_breathe/04.png",
+        "clips/gif_idle_breathe/05.png",
+        "clips/gif_idle_breathe/06.png",
+        "clips/gif_idle_breathe/07.png",
+        "clips/gif_idle_breathe/08.png"
+      ],
+      "fps": 5.556,
+      "anchored": true
     },
     "idle_look": {
-      "gif": "gifs/idle_look.gif",
-      "loop": true
+      "loop": true,
+      "frames": [
+        "clips/gif_idle_look/01.png",
+        "clips/gif_idle_look/02.png",
+        "clips/gif_idle_look/03.png",
+        "clips/gif_idle_look/04.png",
+        "clips/gif_idle_look/05.png",
+        "clips/gif_idle_look/06.png",
+        "clips/gif_idle_look/07.png",
+        "clips/gif_idle_look/08.png"
+      ],
+      "fps": 6.667,
+      "anchored": true
     },
     "idle_wag": {
-      "gif": "gifs/idle_wag.gif",
       "loop": true,
-      "scale": 0.75
+      "scale": 0.75,
+      "frames": [
+        "clips/gif_idle_wag/01.png",
+        "clips/gif_idle_wag/02.png",
+        "clips/gif_idle_wag/03.png",
+        "clips/gif_idle_wag/04.png",
+        "clips/gif_idle_wag/05.png",
+        "clips/gif_idle_wag/06.png",
+        "clips/gif_idle_wag/07.png",
+        "clips/gif_idle_wag/08.png"
+      ],
+      "fps": 5.882,
+      "anchored": true
     },
     "idle_wait": {
-      "gif": "gifs/idle_wait.gif",
-      "loop": true
+      "loop": true,
+      "frames": [
+        "clips/gif_idle_wait/01.png",
+        "clips/gif_idle_wait/02.png",
+        "clips/gif_idle_wait/03.png",
+        "clips/gif_idle_wait/04.png",
+        "clips/gif_idle_wait/05.png",
+        "clips/gif_idle_wait/06.png",
+        "clips/gif_idle_wait/07.png",
+        "clips/gif_idle_wait/08.png"
+      ],
+      "fps": 5.556,
+      "anchored": true
     },
     "bark": {
-      "gif": "gifs/bark.gif",
-      "loop": true
+      "loop": true,
+      "frames": [
+        "clips/gif_bark/01.png",
+        "clips/gif_bark/02.png",
+        "clips/gif_bark/03.png",
+        "clips/gif_bark/04.png",
+        "clips/gif_bark/05.png",
+        "clips/gif_bark/06.png",
+        "clips/gif_bark/07.png",
+        "clips/gif_bark/08.png"
+      ],
+      "fps": 7.143,
+      "anchored": true
     },
     "happy": {
-      "gif": "gifs/idle_wag.gif",
       "loop": true,
-      "scale": 0.75
+      "scale": 0.75,
+      "frames": [
+        "clips/gif_idle_wag/01.png",
+        "clips/gif_idle_wag/02.png",
+        "clips/gif_idle_wag/03.png",
+        "clips/gif_idle_wag/04.png",
+        "clips/gif_idle_wag/05.png",
+        "clips/gif_idle_wag/06.png",
+        "clips/gif_idle_wag/07.png",
+        "clips/gif_idle_wag/08.png"
+      ],
+      "fps": 5.882,
+      "anchored": true
     },
     "sleep": {
-      "gif": "gifs/fall_asleep.gif",
       "loop": true,
-      "loop_from": 4
+      "loop_from": 4,
+      "frames": [
+        "clips/gif_fall_asleep/01.png",
+        "clips/gif_fall_asleep/02.png",
+        "clips/gif_fall_asleep/03.png",
+        "clips/gif_fall_asleep/04.png",
+        "clips/gif_fall_asleep/05.png",
+        "clips/gif_fall_asleep/06.png",
+        "clips/gif_fall_asleep/07.png",
+        "clips/gif_fall_asleep/08.png"
+      ],
+      "fps": 4.545,
+      "anchored": true
     },
     "wake": {
       "frames": [
@@ -69,35 +146,110 @@
       "anchored": true
     },
     "alert": {
-      "gif": "gifs/bark.gif"
+      "frames": [
+        "clips/gif_bark/01.png",
+        "clips/gif_bark/02.png",
+        "clips/gif_bark/03.png",
+        "clips/gif_bark/04.png",
+        "clips/gif_bark/05.png",
+        "clips/gif_bark/06.png",
+        "clips/gif_bark/07.png",
+        "clips/gif_bark/08.png"
+      ],
+      "fps": 7.143,
+      "anchored": true
     },
     "guard": {
-      "gif": "gifs/stand_alert.gif",
-      "loop": true
+      "loop": true,
+      "frames": [
+        "clips/gif_stand_alert/01.png",
+        "clips/gif_stand_alert/02.png",
+        "clips/gif_stand_alert/03.png",
+        "clips/gif_stand_alert/04.png",
+        "clips/gif_stand_alert/05.png",
+        "clips/gif_stand_alert/06.png",
+        "clips/gif_stand_alert/07.png",
+        "clips/gif_stand_alert/08.png"
+      ],
+      "fps": 6.667,
+      "anchored": true
     },
     "portal": {
-      "gif": "gifs/portal_enter.gif",
-      "scale": 0.75
+      "scale": 0.75,
+      "frames": [
+        "clips/gif_portal_enter/01.png",
+        "clips/gif_portal_enter/02.png",
+        "clips/gif_portal_enter/03.png",
+        "clips/gif_portal_enter/04.png",
+        "clips/gif_portal_enter/05.png",
+        "clips/gif_portal_enter/06.png",
+        "clips/gif_portal_enter/07.png",
+        "clips/gif_portal_enter/08.png"
+      ],
+      "fps": 7.143,
+      "anchored": true
     },
     "arrive": {
-      "gif": "gifs/portal_enter.gif",
-      "scale": 0.75
+      "scale": 0.75,
+      "frames": [
+        "clips/gif_portal_enter/01.png",
+        "clips/gif_portal_enter/02.png",
+        "clips/gif_portal_enter/03.png",
+        "clips/gif_portal_enter/04.png",
+        "clips/gif_portal_enter/05.png",
+        "clips/gif_portal_enter/06.png",
+        "clips/gif_portal_enter/07.png",
+        "clips/gif_portal_enter/08.png"
+      ],
+      "fps": 7.143,
+      "anchored": true
     },
     "dash": {
-      "gif": "gifs/run.gif",
-      "loop": true
+      "loop": true,
+      "frames": [
+        "clips/gif_run/01.png",
+        "clips/gif_run/02.png",
+        "clips/gif_run/03.png",
+        "clips/gif_run/04.png",
+        "clips/gif_run/05.png",
+        "clips/gif_run/06.png",
+        "clips/gif_run/07.png",
+        "clips/gif_run/08.png"
+      ],
+      "fps": 10.0,
+      "anchored": true
     },
     "leave": {
-      "gif": "gifs/run.gif",
-      "loop": true
+      "loop": true,
+      "frames": [
+        "clips/gif_run/01.png",
+        "clips/gif_run/02.png",
+        "clips/gif_run/03.png",
+        "clips/gif_run/04.png",
+        "clips/gif_run/05.png",
+        "clips/gif_run/06.png",
+        "clips/gif_run/07.png",
+        "clips/gif_run/08.png"
+      ],
+      "fps": 10.0,
+      "anchored": true
     },
     "walk": {
-      "gif": "gifs/run.gif",
+      "frames": [
+        "clips/walk/01.png",
+        "clips/walk/02.png",
+        "clips/walk/03.png",
+        "clips/walk/04.png",
+        "clips/walk/05.png",
+        "clips/walk/06.png",
+        "clips/walk/07.png",
+        "clips/walk/08.png"
+      ],
+      "fps": 8.33,
       "loop": true,
-      "fps": 6
+      "anchored": true
     },
     "catch": {
-      "gif": "gifs/catch_scroll.gif",
       "props": [
         null,
         [
@@ -142,10 +294,21 @@
           249,
           409
         ]
-      ]
+      ],
+      "frames": [
+        "clips/gif_catch_scroll/01.png",
+        "clips/gif_catch_scroll/02.png",
+        "clips/gif_catch_scroll/03.png",
+        "clips/gif_catch_scroll/04.png",
+        "clips/gif_catch_scroll/05.png",
+        "clips/gif_catch_scroll/06.png",
+        "clips/gif_catch_scroll/07.png",
+        "clips/gif_catch_scroll/08.png"
+      ],
+      "fps": 7.143,
+      "anchored": true
     },
     "carry": {
-      "gif": "gifs/carry_file.gif",
       "loop": true,
       "props": [
         [
@@ -196,13 +359,47 @@
           283,
           444
         ]
-      ]
+      ],
+      "frames": [
+        "clips/gif_carry_file/01.png",
+        "clips/gif_carry_file/02.png",
+        "clips/gif_carry_file/03.png",
+        "clips/gif_carry_file/04.png",
+        "clips/gif_carry_file/05.png",
+        "clips/gif_carry_file/06.png",
+        "clips/gif_carry_file/07.png",
+        "clips/gif_carry_file/08.png"
+      ],
+      "fps": 7.692,
+      "anchored": true
     },
     "celebrate": {
-      "gif": "gifs/data_snack.gif"
+      "frames": [
+        "clips/gif_data_snack/01.png",
+        "clips/gif_data_snack/02.png",
+        "clips/gif_data_snack/03.png",
+        "clips/gif_data_snack/04.png",
+        "clips/gif_data_snack/05.png",
+        "clips/gif_data_snack/06.png",
+        "clips/gif_data_snack/07.png",
+        "clips/gif_data_snack/08.png"
+      ],
+      "fps": 5.556,
+      "anchored": true
     },
     "play": {
-      "gif": "gifs/play_orb.gif"
+      "frames": [
+        "clips/gif_play_orb/01.png",
+        "clips/gif_play_orb/02.png",
+        "clips/gif_play_orb/03.png",
+        "clips/gif_play_orb/04.png",
+        "clips/gif_play_orb/05.png",
+        "clips/gif_play_orb/06.png",
+        "clips/gif_play_orb/07.png",
+        "clips/gif_play_orb/08.png"
+      ],
+      "fps": 6.25,
+      "anchored": true
     },
     "sad": {
       "frames": [
@@ -276,8 +473,7 @@
         "clips/portal_exit/06.png",
         "clips/portal_exit/07.png",
         "clips/portal_exit/08.png",
-        "clips/portal_exit/09.png",
-        "clips/portal_exit/10.png"
+        "clips/portal_exit/09.png"
       ],
       "fps": 9.09,
       "loop": false,
@@ -328,6 +524,19 @@
       ],
       "fps": 9.09,
       "loop": true,
+      "anchored": true
+    },
+    "sit_to_run": {
+      "frames": [
+        "clips/sit_to_run/01.png",
+        "clips/sit_to_run/02.png",
+        "clips/sit_to_run/03.png",
+        "clips/sit_to_run/04.png",
+        "clips/sit_to_run/05.png",
+        "clips/sit_to_run/06.png"
+      ],
+      "fps": 11.11,
+      "loop": false,
       "anchored": true
     }
   }
