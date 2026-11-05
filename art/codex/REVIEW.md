@@ -32,7 +32,19 @@ still rejected: the `walk` sheet shows a lean, realistic, muted-colour wolf faci
 chunky ember Cerberus with the Greek-key collar and Ψ medallion — so it fails on identity, not just
 on slicing. Nothing from round 3 is imported.
 
+## Round 4 (one item per call, references attached) — accepted
+
+With the approved frames attached to every call, all 14 generations were on-model. Provenance
+verified for 14/14 (the `turn_around` record had a wrong path; the sheet is byte-identical to a
+generation made during the round, and the record was corrected). Codex only generated sheets; the
+project's `scripts/process_art.py` removed the backgrounds (fake checkerboard, cream, white,
+dark brown), cut poses by outline, matched every clip to the idle size and pinned the feet.
+
+Accepted and imported: `walk`, `turn_around`, `sit_to_run`, `run_to_sit`, `yawn`, `scratch_ear`,
+`heads_argue`, `howl`, `chase_tail`, `celebrate_jump`, `mini_curl`, and all 16 item icons.
+Rejected: `peek_in` (its dark background could not be separated cleanly from the fur).
+
 ## Still needed
 
-Real animations for the rejected clips and 16 distinct item icons. The app's engine already
-plays each clip as soon as it passes QA and is imported (`scripts/import_codex_art.py`).
+`peek_in` (ask for a light background), `mini_wake`, and optional animated icon GIFs. Rebuild with
+`python scripts/rebuild_clips.py`; the engine plays every clip that passes.

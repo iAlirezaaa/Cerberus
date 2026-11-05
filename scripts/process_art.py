@@ -70,10 +70,20 @@ def remove_background(image: Image.Image) -> Image.Image:
         return image  # real transparency already
     w, h = image.size
     px = image.load()
+    # The sheet's own background colour, from its border (flat, cream, white or dark).
+    border = [px[x, y][:3] for x in range(0, w, 7) for y in (0, 1, h - 2, h - 1)] + \
+             [px[x, y][:3] for y in range(0, h, 7) for x in (0, 1, w - 2, w - 1)]
+    bg = tuple(sorted(c[i] for c in border)[len(border) // 2] for i in range(3))
+    light = sum(bg) > 500
+    # Dark backgrounds sit close to the fur colour: use a tight tolerance there.
+    tolerance = 46 if light else 22
 
     def background(x: int, y: int) -> bool:
         r, g, b, _ = px[x, y]
-        return min(r, g, b) > 165 and max(r, g, b) - min(r, g, b) < 30
+        if (r - bg[0]) ** 2 + (g - bg[1]) ** 2 + (b - bg[2]) ** 2 < tolerance ** 2:
+            return True
+        # Fake transparency: light grey checkerboard squares.
+        return light and min(r, g, b) > 165 and max(r, g, b) - min(r, g, b) < 30
 
     mask = Image.new("L", (w, h), 255)
     mp = mask.load()
@@ -95,6 +105,8 @@ def remove_background(image: Image.Image) -> Image.Image:
     # the border; remove any light grey region big enough to be background, not teeth/highlights.
     for y0 in range(h):
         for x0 in range(w):
+            if not light:
+                break  # on dark backgrounds, enclosed dark pockets are fur, not background
             if mp[x0, y0] != 255 or not background(x0, y0):
                 continue
             region, queue = [], deque([(x0, y0)])
@@ -245,10 +257,38 @@ def smooth_gifs() -> dict:
     return timing
 
 
+ICON_ORDER = {
+    "icons_a": ["text", "link", "image", "pdf", "document", "spreadsheet", "presentation", "archive"],
+    "icons_b": ["code", "audio", "video", "app", "font", "email", "model3d", "file"],
+}
+
+
+def icons_from_sheet(sheet_path: Path, out: Path, sheet_name: str) -> int:
+    """Cut 8 icons out of a generated sheet and centre each on a transparent 128 x 128 tile."""
+    kinds = ICON_ORDER[sheet_name]
+    poses = poses_from_sheet(remove_background(Image.open(sheet_path)))
+    if len(poses) != len(kinds):
+        print(f"{sheet_name}: found {len(poses)} icons, expected {len(kinds)}")
+        return 1
+    out.mkdir(parents=True, exist_ok=True)
+    for kind, (icon, _) in zip(kinds, poses):
+        side = 116
+        ratio = side / max(icon.width, icon.height)
+        icon = icon.resize((max(1, round(icon.width * ratio)), max(1, round(icon.height * ratio))),
+                           Image.LANCZOS)
+        tile = Image.new("RGBA", (128, 128), (0, 0, 0, 0))
+        tile.alpha_composite(icon, ((128 - icon.width) // 2, (128 - icon.height) // 2))
+        soften_edges(tile).save(out / f"{kind}.png", optimize=True)
+    print(f"{sheet_name}: {len(kinds)} icons -> {out}")
+    return 0
+
+
 def main(argv: list[str]) -> int:
     if argv[:1] == ["gifs"]:
         print(json.dumps(smooth_gifs(), indent=1))
         return 0
+    if argv[:1] == ["icons"]:
+        return icons_from_sheet(Path(argv[1]), Path(argv[2]), argv[3])
     mode, source, out, name = argv[0], Path(argv[1]), Path(argv[2]), argv[3]
     if mode == "sheet":
         poses = poses_from_sheet(remove_background(Image.open(source)))
@@ -258,7 +298,7 @@ def main(argv: list[str]) -> int:
         print(f"{name}: only {len(poses)} poses found")
         return 1
     if name.startswith("mini_"):
-        frames = normalise(name, poses, canvas=(96, 96), baseline=90, centre_x=48, target_width=86)
+        frames = normalise(name, poses, canvas=(96, 96), baseline=88, centre_x=48, target_width=78)
     else:
         frames = normalise(name, poses)
     save(frames, out)

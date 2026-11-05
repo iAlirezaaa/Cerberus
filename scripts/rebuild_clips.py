@@ -106,6 +106,13 @@ def main() -> int:
                 f.unlink()
             folder.rmdir()
     (OUT / "manifest.json").write_text(json.dumps({"animations": done}, indent=2), encoding="utf-8")
+    icons_dir = OUT / "icons"
+    for old in icons_dir.glob("*.png"):
+        old.unlink()
+    for sheet_name in ("icons_a", "icons_b"):
+        sheet = CODEX / "sheets" / f"{sheet_name}_sheet.png"
+        if sheet_name in verified and sheet.is_file():
+            run("scripts/process_art.py", "icons", str(sheet), str(icons_dir), sheet_name)
     run("scripts/qa_codex_art.py", str(OUT))
     status = run("scripts/import_codex_art.py", str(OUT))
     qa = json.loads((OUT / "qa_report.json").read_text(encoding="utf-8"))["animations"]

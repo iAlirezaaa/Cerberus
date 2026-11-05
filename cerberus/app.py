@@ -14,6 +14,8 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
+from .icons import has_designed_icon, kind_icon
+from .item_kinds import kind_for_path
 from .pet import CarryIcon, CerberusPet, MiniBubble, mime_image_png
 from .quips import resolve_language
 from .settings import Settings, data_dir, vault_dir
@@ -482,7 +484,8 @@ class Controller:
                            if len(paths) == 1 else quips.pick("capture_files", count=len(paths)))
             elif kind == "text":
                 item = self.vault.capture_text(str(value), source="drop-or-clipboard")
-                carry = CarryIcon("url" if item["kind"] == "url" else "text")
+                carry = designed_carry("link" if item["kind"] == "url" else "text",
+                                       "url" if item["kind"] == "url" else "text")
                 message = quips.pick("capture_url" if item["kind"] == "url" else "capture_text")
             elif kind == "image":
                 self.vault.add_bytes(bytes(value), name="captured-image.png", source="drop-or-clipboard")
@@ -545,13 +548,23 @@ def image_thumbnail(data: bytes | None = None, path: Path | None = None,
     return None if image.isNull() else QPixmap.fromImage(image)
 
 
+def designed_carry(kind: str, carry_kind: str, label: str = "") -> CarryIcon:
+    """Carry the designed ember icon for this kind (falls back to the drawn glyph)."""
+    if has_designed_icon(kind):
+        return CarryIcon(carry_kind, kind_icon(kind, 96), label)
+    return CarryIcon(carry_kind, None, label)
+
+
 def carry_icon_for_file(original: Path, stored: str | None) -> CarryIcon:
-    """The file's own thumbnail (images) or its system file-type icon."""
+    """The image's own thumbnail, the designed kind icon, or the system file-type icon."""
     label = original.suffix.lstrip(".").upper()[:4] or "FILE"
     if original.suffix.lower() in IMAGE_SUFFIXES and stored:
         thumb = image_thumbnail(path=Path(stored))
         if thumb is not None:
             return CarryIcon("image", thumb, label)
+    kind = kind_for_path(original.name)
+    if has_designed_icon(kind):
+        return CarryIcon("file", kind_icon(kind, 96), label)
     icon = QFileIconProvider().icon(QFileInfo(str(original)))
     pixmap = icon.pixmap(48, 48) if not icon.isNull() else None
     return CarryIcon("file", pixmap if pixmap is not None and not pixmap.isNull() else None, label)

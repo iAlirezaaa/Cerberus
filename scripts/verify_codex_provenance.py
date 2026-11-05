@@ -25,7 +25,8 @@ def main() -> int:
     new_files = [p for p in GENERATED.rglob("*") if p.is_file() and p.stat().st_mtime > since]
     print(f"images generated since {marker.name}: {len(new_files)}")
     try:
-        provenance = json.loads((root / "provenance.json").read_text(encoding="utf-8"))
+        # utf-8-sig: PowerShell writes JSON with a byte-order mark.
+        provenance = json.loads((root / "provenance.json").read_text(encoding="utf-8-sig"))
     except (OSError, ValueError):
         print("provenance.json missing or invalid")
         return 1

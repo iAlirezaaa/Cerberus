@@ -428,7 +428,7 @@
         "clips/talk/08.png"
       ],
       "fps": 9.09,
-      "loop": true,
+      "loop": false,
       "anchored": true
     },
     "held": {
@@ -443,9 +443,8 @@
         "clips/held/08.png"
       ],
       "fps": 9.09,
-      "loop": true,
-      "anchored": true,
-      "loop_from": 3
+      "loop": false,
+      "anchored": true
     },
     "petted": {
       "frames": [
@@ -459,9 +458,8 @@
         "clips/petted/08.png"
       ],
       "fps": 9.09,
-      "loop": true,
-      "anchored": true,
-      "loop_from": 2
+      "loop": false,
+      "anchored": true
     },
     "portal_exit": {
       "frames": [
@@ -491,7 +489,7 @@
         "clips/sniff/08.png"
       ],
       "fps": 9.09,
-      "loop": true,
+      "loop": false,
       "anchored": true
     },
     "stash_item": {
@@ -523,7 +521,7 @@
         "clips/think/08.png"
       ],
       "fps": 9.09,
-      "loop": true,
+      "loop": false,
       "anchored": true
     },
     "sit_to_run": {
@@ -536,6 +534,143 @@
         "clips/sit_to_run/06.png"
       ],
       "fps": 11.11,
+      "loop": false,
+      "anchored": true
+    },
+    "chase_tail": {
+      "frames": [
+        "clips/chase_tail/01.png",
+        "clips/chase_tail/02.png",
+        "clips/chase_tail/03.png",
+        "clips/chase_tail/04.png",
+        "clips/chase_tail/05.png",
+        "clips/chase_tail/06.png",
+        "clips/chase_tail/07.png",
+        "clips/chase_tail/08.png",
+        "clips/chase_tail/09.png",
+        "clips/chase_tail/10.png"
+      ],
+      "fps": 11.11,
+      "loop": true,
+      "anchored": true
+    },
+    "run_to_sit": {
+      "frames": [
+        "clips/run_to_sit/01.png",
+        "clips/run_to_sit/02.png",
+        "clips/run_to_sit/03.png",
+        "clips/run_to_sit/04.png",
+        "clips/run_to_sit/05.png",
+        "clips/run_to_sit/06.png"
+      ],
+      "fps": 10.0,
+      "loop": false,
+      "anchored": true
+    },
+    "turn_around": {
+      "frames": [
+        "clips/turn_around/01.png",
+        "clips/turn_around/02.png",
+        "clips/turn_around/03.png",
+        "clips/turn_around/04.png",
+        "clips/turn_around/05.png",
+        "clips/turn_around/06.png",
+        "clips/turn_around/07.png",
+        "clips/turn_around/08.png"
+      ],
+      "fps": 9.09,
+      "loop": false,
+      "anchored": true
+    },
+    "celebrate_jump": {
+      "frames": [
+        "clips/celebrate_jump/01.png",
+        "clips/celebrate_jump/02.png",
+        "clips/celebrate_jump/03.png",
+        "clips/celebrate_jump/04.png",
+        "clips/celebrate_jump/05.png",
+        "clips/celebrate_jump/06.png",
+        "clips/celebrate_jump/07.png",
+        "clips/celebrate_jump/08.png"
+      ],
+      "fps": 10.0,
+      "loop": false,
+      "anchored": true
+    },
+    "heads_argue": {
+      "frames": [
+        "clips/heads_argue/01.png",
+        "clips/heads_argue/02.png",
+        "clips/heads_argue/03.png",
+        "clips/heads_argue/04.png",
+        "clips/heads_argue/05.png",
+        "clips/heads_argue/06.png",
+        "clips/heads_argue/07.png",
+        "clips/heads_argue/08.png",
+        "clips/heads_argue/09.png",
+        "clips/heads_argue/10.png"
+      ],
+      "fps": 8.33,
+      "loop": false,
+      "anchored": true
+    },
+    "howl": {
+      "frames": [
+        "clips/howl/01.png",
+        "clips/howl/02.png",
+        "clips/howl/03.png",
+        "clips/howl/04.png",
+        "clips/howl/05.png",
+        "clips/howl/06.png",
+        "clips/howl/07.png",
+        "clips/howl/08.png"
+      ],
+      "fps": 7.14,
+      "loop": false,
+      "anchored": true
+    },
+    "mini_curl": {
+      "frames": [
+        "clips/mini_curl/01.png",
+        "clips/mini_curl/02.png",
+        "clips/mini_curl/03.png",
+        "clips/mini_curl/04.png",
+        "clips/mini_curl/05.png",
+        "clips/mini_curl/06.png",
+        "clips/mini_curl/07.png",
+        "clips/mini_curl/08.png"
+      ],
+      "fps": 5.56,
+      "loop": true,
+      "anchored": true
+    },
+    "scratch_ear": {
+      "frames": [
+        "clips/scratch_ear/01.png",
+        "clips/scratch_ear/02.png",
+        "clips/scratch_ear/03.png",
+        "clips/scratch_ear/04.png",
+        "clips/scratch_ear/05.png",
+        "clips/scratch_ear/06.png",
+        "clips/scratch_ear/07.png",
+        "clips/scratch_ear/08.png"
+      ],
+      "fps": 9.09,
+      "loop": false,
+      "anchored": true
+    },
+    "yawn": {
+      "frames": [
+        "clips/yawn/01.png",
+        "clips/yawn/02.png",
+        "clips/yawn/03.png",
+        "clips/yawn/04.png",
+        "clips/yawn/05.png",
+        "clips/yawn/06.png",
+        "clips/yawn/07.png",
+        "clips/yawn/08.png"
+      ],
+      "fps": 7.69,
       "loop": false,
       "anchored": true
     }
