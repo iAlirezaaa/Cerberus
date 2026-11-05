@@ -5,43 +5,78 @@ from dataclasses import dataclass, field
 import time
 
 # Each short action can be inspected in tests without waiting for timers.
+# Durations match one pass of the bundled GIF clips.
 DURATIONS = {
-    "portal": (0.55, "dash"),
-    "dash": (0.55, "catch"),
-    "catch": (0.50, "carry"),
-    "carry": (0.55, "celebrate"),
-    "celebrate": (0.8, "idle"),
-    "play": (1.15, "idle"),
-    "wake": (0.7, "idle"),
-    "alert": (0.9, "idle"),
+    "portal": (1.12, "dash"),
+    "dash": (0.80, "catch"),
+    "catch": (1.12, "carry"),
+    "carry": (1.04, "celebrate"),
+    "celebrate": (1.44, "idle"),
+    "play": (1.36, "idle"),
+    "wake": (1.14, "idle"),
+    "alert": (1.12, "idle"),
+    "arrive": (1.12, "idle"),
+    # Getting up from a nap before running off-screen.
+    "rouse": (1.14, "leave"),
 }
+# "leave" lasts until the widget reports it ran off-screen, "walk" until it reaches
+# its spot, "away" until summoned.
+OPEN_ENDED = ("idle", "sleep", "guard", "leave", "away", "walk")
+# Phases that do not count as the user interacting with the pet.
+PASSIVE = ("sleep", "leave", "away", "walk", "rouse")
 
 
 @dataclass
 class MotionMachine:
-    """Timeline-based behavior: idle -> sleep, or portal -> dash -> catch -> carry -> celebrate."""
+    """Timeline-based behavior.
+
+    idle -> sleep -> rouse -> leave (runs off-screen) -> away, idle <-> walk, or
+    portal -> dash -> catch -> carry -> celebrate after a capture.
+    """
 
     standby_after: float = 95.0
     phase: str = "idle"
     entered_at: float = field(default_factory=time.monotonic)
     last_active_at: float = field(default_factory=time.monotonic)
     reduced_motion: bool = False
+    # Seconds without interaction before Cerberus wanders off-screen; None disables it.
+    away_after: float | None = None
 
     def __post_init__(self) -> None:
         if self.standby_after <= 0:
             raise ValueError("standby_after must be positive")
+        if self.away_after is not None and self.away_after <= 0:
+            raise ValueError("away_after must be positive")
 
-    def transition(self, phase: str, *, now: float | None = None) -> None:
-        if phase not in (*DURATIONS, "idle", "sleep", "guard"):
+    def transition(self, phase: str, *, now: float | None = None,
+                   active: bool | None = None) -> None:
+        """Enter a phase; ``active`` says whether it counts as user interaction."""
+        if phase not in (*DURATIONS, *OPEN_ENDED):
             raise ValueError(f"Unknown pet state: {phase}")
         stamp = time.monotonic() if now is None else now
         self.phase = phase
         self.entered_at = stamp
-        if phase != "sleep":
+        if (phase not in PASSIVE) if active is None else active:
             self.last_active_at = stamp
+
+    def settle(self, *, now: float | None = None) -> None:
+        """Back to idle on its own (e.g. after a stroll) without resetting idle timers."""
+        self.transition("idle", now=now, active=False)
+
+    @property
+    def is_away(self) -> bool:
+        return self.phase in ("leave", "away")
 
     def capture(self, *, now: float | None = None) -> None:
         self.transition("carry" if self.reduced_motion else "portal", now=now)
+
+    def arrive(self, *, now: float | None = None) -> None:
+        """Come back (or come to the cursor) through the Hades portal."""
+        self.transition("wake" if self.reduced_motion else "arrive", now=now)
+
+    def dismiss(self, *, now: float | None = None) -> None:
+        """The user sent Cerberus away: run off-screen now."""
+        self.transition("leave", now=now)
 
     def touch(self, *, now: float | None = None) -> None:
         stamp = time.monotonic() if now is None else now
@@ -61,7 +96,12 @@ class MotionMachine:
                 break
             self.phase = next_phase
             self.entered_at += duration
-        if self.phase == "idle" and stamp - self.last_active_at >= self.standby_after:
+        idle_for = stamp - self.last_active_at
+        if self.phase in ("idle", "sleep") and self.away_after is not None \
+                and idle_for >= self.away_after:
+            self.phase = "rouse" if self.phase == "sleep" and not self.reduced_motion else "leave"
+            self.entered_at = stamp
+        elif self.phase == "idle" and idle_for >= self.standby_after:
             self.phase = "sleep"
             self.entered_at = stamp
         return self.phase != before

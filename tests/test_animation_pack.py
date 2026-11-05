@@ -49,6 +49,39 @@ class AnimationPackTests(unittest.TestCase):
                 "wake": {"frames": ["wake.png"]},
             }))
 
+    def test_reads_gif_states_with_loop_from_and_scale(self):
+        parsed = parse_manifest(manifest(version=2, default="gifs/idle.gif", states={
+            "sleep": {"gif": "gifs/sleep.gif", "loop": True, "loop_from": 4},
+            "idle_wag": {"gif": "gifs/wag.gif", "scale": 0.72},
+        }))
+        self.assertEqual(parsed.default, "gifs/idle.gif")
+        sleep = parsed.states["sleep"]
+        self.assertEqual((sleep.gif, sleep.loop_from, sleep.frames), ("gifs/sleep.gif", 4, ()))
+        self.assertFalse(sleep.fps_explicit)
+        self.assertEqual(parsed.states["idle_wag"].scale, 0.72)
+
+    def test_rejects_bad_gif_entries(self):
+        for state in (
+            {"gif": "a.png"},
+            {"frames": ["a.gif"]},
+            {"gif": "a.gif", "frames": ["a.png"]},
+            {"gif": "../a.gif"},
+            {"gif": "a.gif", "scale": 9},
+            {"gif": "a.gif", "loop_from": -1},
+            {"frames": ["a.png"], "loop_from": 1},
+        ):
+            with self.subTest(state=state), self.assertRaises(ValueError):
+                parse_manifest(manifest(states={"idle": state}))
+
+    def test_bundled_pack_is_valid_and_complete(self):
+        from importlib import resources
+        root = resources.files("cerberus").joinpath("assets")
+        parsed = parse_manifest(root.joinpath("animation-pack.json").read_bytes())
+        for state in ("idle", "sleep", "wake", "portal", "dash", "catch", "carry",
+                      "celebrate", "play", "alert", "guard", "arrive", "leave"):
+            self.assertIn(state, parsed.states)
+            self.assertTrue(root.joinpath(*parsed.states[state].gif.split("/")).is_file())
+
 
 if __name__ == "__main__":
     unittest.main()

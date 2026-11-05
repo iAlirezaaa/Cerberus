@@ -33,6 +33,31 @@ The **original AI-generated GIFs and PNG sprite frames** are included in this re
 - To preview the new frame-based animations in the app, set `CERBERUS_ASSET_PACK` to the absolute path of `assets/animations/animation-pack.json` before launching `cerberus-desktop`. The external pack overrides the default sprite and is best regarded as experimental.
 - To package all repository artwork into a ZIP, run `python scripts/package_animation_assets.py` or get the `Cerberus-visual-assets` artifact from the **Animation Assets** workflow.
 
+## Animated GIF character (current default)
+
+The desktop pet plays the transparent GIF clips in [`cerberus/assets/gifs/`](cerberus/assets/gifs/), mapped to states in [`animation-pack.json`](cerberus/assets/animation-pack.json):
+
+| GIF | Used for |
+| --- | --- |
+| `idle_breathe.gif`, `idle_look.gif`, `idle_wag.gif`, `idle_wait.gif`, `bark.gif` | Idle (rotates between them) |
+| `fall_asleep.gif` | Standby / sleep (loops the sleeping frames) |
+| `stand_alert.gif` | Wake, guard |
+| `bark.gif` | Something is dragged over Cerberus |
+| `portal_enter.gif` | Capture start, and coming back on screen |
+| `run.gif` | Dash, and running off screen (mirrored when leaving left) |
+| `catch_scroll.gif` → `carry_file.gif` → `data_snack.gif` | Capture sequence |
+| `play_orb.gif` | Petting / play |
+
+**Alive:** Cerberus strolls around, turns toward your cursor, talks and thinks in speech/thought bubbles (English or Persian), and shows the actual item it caught on the scroll it carries: a thumbnail for images, the system file-type icon and extension for files, a globe for links and lines for text.
+
+**Settings** (tray → *Settings…*): see and change where memories are stored (database, copied files, settings file), size, walking, chat level, language, nap/wander timing, the return button, shortcuts and clipboard capture.
+
+**Shortcuts:** pick the mouse gesture (Left + Right together, Ctrl + Middle click, mouse side buttons, or off) and record any keyboard shortcut (default **Ctrl+Alt+C**). Choose whether it brings Cerberus to the cursor or toggles it away/back. The gesture's clicks are swallowed, so the window underneath never gets a right-click.
+
+**Send away / call back:** hover over Cerberus and click the ↗ button to send it away. While it's gone, a small portal button waits at the screen edge — click it to bring Cerberus back.
+
+**Wander off & summon:** after about 3 minutes without interaction Cerberus falls asleep, then runs off the nearest screen edge and hides. Press **left + right mouse buttons together** anywhere to bring it back through the portal at your cursor (Windows). Both behaviours can be switched off in the tray menu; `away_seconds` in `settings.json` sets the delay (30–7200).
+
 ## What is Cerberus?
 
 Cerberus is a playful desktop pet with a real job: capturing information. Drag text, a link, a local file or an image onto the three-headed hellhound. It catches the item, enters a short Hades-portal animation, and saves it into your **local**, searchable memory vault.

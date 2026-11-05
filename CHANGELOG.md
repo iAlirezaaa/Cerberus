@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased — a livelier guardian, settings window and custom shortcuts
+
+- **Alive on screen:** Cerberus strolls along the screen (occasionally with zoomies), turns toward the cursor, cross-fades between clips, kicks up dust when running, floats "z"s while asleep and hearts when petted.
+- **Talks and thinks:** speech and thought bubbles with playful lines in English and Persian (فارسی), time-of-day greetings, reactions to petting, dragging, captures and milestones. Chat level Silent / Quiet / Normal / Chatty.
+- **Shows what it caught:** the scroll and document in the catch/carry clips now display the real item: a text, link or image thumbnail, or the file's own system icon plus its extension.
+- **Smoother transitions:** waking up is the fall-asleep clip played backwards; it now gets up before running off-screen.
+- **Send away / call back:** a hover button on Cerberus sends it away; while away a small portal button stays docked at the screen edge — click it to call Cerberus back.
+- **Custom shortcuts:** choose the mouse gesture (Left + Right, Ctrl + Middle, side Back/Forward button, or off) and any keyboard shortcut (default Ctrl+Alt+C), and whether it summons or toggles. On Windows the gesture's clicks are swallowed by a low-level hook, so left+right no longer opens the app's right-click menu.
+- **Settings window:** shows exactly where memories, copied files and settings are stored, with Open folder / Change location (copies the vault, keeping the original) / Use default location, plus all companion, nap, shortcut and capture options.
+- Tray icon now uses Cerberus's own heads.
+
+## Unreleased — animated GIF character, wander-off and left+right summon
+
+- The desktop pet now plays 13 authored transparent GIF clips (bundled in `cerberus/assets/gifs/`) instead of single static poses: idle, look-around, tail wag, sit-and-wait, bark, fall asleep, stand alert, Hades portal entrance, run, catch scroll, carry file, data snack and play with orb.
+- Idle rotates between the idle clips; GIF frames are decoded once, cropped to the character and drawn on a shared ground line at a consistent scale.
+- After a period without interaction (default 180 s, tray toggle "Wander off screen when unused") Cerberus runs off the nearest screen edge and hides; its animation timer stops while away.
+- Pressing the left and right mouse buttons together anywhere (Windows) summons Cerberus back through the portal at the cursor. Only the two button states are sampled; tray toggle "Summon with left + right click together". Tray "Summon" and "Show / hide" also bring it back.
+- Animation-pack manifests accept `gif` entries with optional `loop_from` and `scale` (version 2); PNG packs keep working.
+
 ## Unreleased — Apache-2.0 licensing and maintainer skill
 
 - Applied the official Apache License 2.0 to the current repository revision and added a NOTICE covering attribution, historical grants, marks and third-party components.
