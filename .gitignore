@@ -13,3 +13,12 @@ dist/
 .env
 .DS_Store
 *.spec
+
+# Codex working files (accepted art is copied into cerberus/assets)
+art/codex/frames/
+art/codex/sheets/
+art/codex/gifs/
+art/codex/references/
+art/codex/icons/
+art/codex/*.log
+art/codex/.codex_path

@@ -8,15 +8,24 @@ from typing import Any
 
 MAX_MANIFEST_BYTES = 256 * 1024
 MAX_FRAMES_PER_STATE = 64
-MAX_UNIQUE_FRAMES = 128
+MAX_UNIQUE_FRAMES = 400
 MAX_FRAME_BYTES = 16 * 1024 * 1024
 MAX_DIMENSION = 4096
 # Motion phases plus purely visual idle variants the pet rotates through.
 IDLE_VARIANTS = ("idle_look", "idle_wag", "idle_wait", "bark")
+# Optional idle flourishes (played now and then when present in the pack).
+EXTRA_IDLE = ("yawn", "scratch_ear", "chase_tail", "heads_argue")
+# Optional clips that stand in for, or bridge between, motion phases.
+OPTIONAL_CLIPS = (
+    "sit_to_run", "run_to_sit", "turn_around", "held", "petted", "sad", "portal_exit",
+    "stash_item", "talk", "think", "sniff", "howl", "peek_in", "celebrate_jump",
+    "mini_curl", "mini_wake",
+)
 ALLOWED_STATES = {
     "idle", "sleep", "wake", "portal", "dash", "catch",
     "celebrate", "play", "alert", "guard", "carry",
-    "arrive", "leave", "rouse", "walk", "happy", *IDLE_VARIANTS,
+    "arrive", "leave", "rouse", "walk", "happy", *IDLE_VARIANTS, *EXTRA_IDLE,
+    *OPTIONAL_CLIPS,
 }
 Box = tuple[int, int, int, int]
 IMAGE_SUFFIXES = {".png": "frames", ".gif": "gif"}
@@ -39,6 +48,8 @@ class FrameSequence:
     # Per-frame (x0, y0, x1, y1) box of the carried item, in source pixels,
     # where Cerberus draws an icon of what it actually caught.
     props: tuple[Box | None, ...] = ()
+    # PNG lists drawn like GIF clips: cropped and standing on the ground line.
+    anchored: bool = False
 
 
 @dataclass(frozen=True)
@@ -134,8 +145,12 @@ def parse_manifest(data: bytes) -> PackManifest:
         props = _props(config.get("props", []), state)
         if frames and props and len(props) != len(frames):
             raise ValueError(f"{state} props must list one box per frame")
+        anchored = config.get("anchored", False)
+        if type(anchored) is not bool:
+            raise ValueError(f"{state} anchored must be a boolean")
         states[state] = FrameSequence(frames, float(fps), loop, gif, loop_from,
-                                      float(scale), fps_explicit, reverse, props)
+                                      float(scale), fps_explicit, reverse, props,
+                                      anchored or gif is not None)
         if len(asset_names) > MAX_UNIQUE_FRAMES:
             raise ValueError(f"An animation pack may use at most {MAX_UNIQUE_FRAMES} unique frames")
     return PackManifest(default, states)

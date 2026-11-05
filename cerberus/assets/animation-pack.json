@@ -3,31 +3,332 @@
   "version": 2,
   "default": "gifs/idle_breathe.gif",
   "states": {
-    "idle":      { "gif": "gifs/idle_breathe.gif", "loop": true },
-    "idle_look": { "gif": "gifs/idle_look.gif", "loop": true },
-    "idle_wag":  { "gif": "gifs/idle_wag.gif", "loop": true, "scale": 0.75 },
-    "idle_wait": { "gif": "gifs/idle_wait.gif", "loop": true },
-    "bark":      { "gif": "gifs/bark.gif", "loop": true },
-    "happy":     { "gif": "gifs/idle_wag.gif", "loop": true, "scale": 0.75 },
-    "sleep":     { "gif": "gifs/fall_asleep.gif", "loop": true, "loop_from": 4 },
-    "wake":      { "gif": "gifs/fall_asleep.gif", "reverse": true, "fps": 7 },
-    "rouse":     { "gif": "gifs/fall_asleep.gif", "reverse": true, "fps": 7 },
-    "alert":     { "gif": "gifs/bark.gif" },
-    "guard":     { "gif": "gifs/stand_alert.gif", "loop": true },
-    "portal":    { "gif": "gifs/portal_enter.gif", "scale": 0.75 },
-    "arrive":    { "gif": "gifs/portal_enter.gif", "scale": 0.75 },
-    "dash":      { "gif": "gifs/run.gif", "loop": true },
-    "leave":     { "gif": "gifs/run.gif", "loop": true },
-    "walk":      { "gif": "gifs/run.gif", "loop": true, "fps": 6 },
-    "catch":     { "gif": "gifs/catch_scroll.gif",
-                   "props": [null, [249, 423, 294, 463], [239, 424, 299, 475], [238, 425, 301, 477],
-                             [236, 320, 295, 373], [212, 331, 271, 397], [201, 348, 251, 409],
-                             [199, 349, 249, 409]] },
-    "carry":     { "gif": "gifs/carry_file.gif", "loop": true,
-                   "props": [[216, 364, 281, 435], [215, 343, 279, 419], [224, 328, 293, 402],
-                             [224, 317, 295, 390], [221, 343, 287, 419], [218, 366, 281, 443],
-                             [218, 371, 280, 443], [220, 370, 283, 444]] },
-    "celebrate": { "gif": "gifs/data_snack.gif" },
-    "play":      { "gif": "gifs/play_orb.gif" }
+    "idle": {
+      "gif": "gifs/idle_breathe.gif",
+      "loop": true
+    },
+    "idle_look": {
+      "gif": "gifs/idle_look.gif",
+      "loop": true
+    },
+    "idle_wag": {
+      "gif": "gifs/idle_wag.gif",
+      "loop": true,
+      "scale": 0.75
+    },
+    "idle_wait": {
+      "gif": "gifs/idle_wait.gif",
+      "loop": true
+    },
+    "bark": {
+      "gif": "gifs/bark.gif",
+      "loop": true
+    },
+    "happy": {
+      "gif": "gifs/idle_wag.gif",
+      "loop": true,
+      "scale": 0.75
+    },
+    "sleep": {
+      "gif": "gifs/fall_asleep.gif",
+      "loop": true,
+      "loop_from": 4
+    },
+    "wake": {
+      "frames": [
+        "clips/wake_up/01.png",
+        "clips/wake_up/02.png",
+        "clips/wake_up/03.png",
+        "clips/wake_up/04.png",
+        "clips/wake_up/05.png",
+        "clips/wake_up/06.png",
+        "clips/wake_up/07.png",
+        "clips/wake_up/08.png",
+        "clips/wake_up/09.png",
+        "clips/wake_up/10.png"
+      ],
+      "fps": 9.09,
+      "loop": false,
+      "anchored": true
+    },
+    "rouse": {
+      "frames": [
+        "clips/wake_up/01.png",
+        "clips/wake_up/02.png",
+        "clips/wake_up/03.png",
+        "clips/wake_up/04.png",
+        "clips/wake_up/05.png",
+        "clips/wake_up/06.png",
+        "clips/wake_up/07.png",
+        "clips/wake_up/08.png",
+        "clips/wake_up/09.png",
+        "clips/wake_up/10.png"
+      ],
+      "fps": 9.09,
+      "loop": false,
+      "anchored": true
+    },
+    "alert": {
+      "gif": "gifs/bark.gif"
+    },
+    "guard": {
+      "gif": "gifs/stand_alert.gif",
+      "loop": true
+    },
+    "portal": {
+      "gif": "gifs/portal_enter.gif",
+      "scale": 0.75
+    },
+    "arrive": {
+      "gif": "gifs/portal_enter.gif",
+      "scale": 0.75
+    },
+    "dash": {
+      "gif": "gifs/run.gif",
+      "loop": true
+    },
+    "leave": {
+      "gif": "gifs/run.gif",
+      "loop": true
+    },
+    "walk": {
+      "gif": "gifs/run.gif",
+      "loop": true,
+      "fps": 6
+    },
+    "catch": {
+      "gif": "gifs/catch_scroll.gif",
+      "props": [
+        null,
+        [
+          249,
+          423,
+          294,
+          463
+        ],
+        [
+          239,
+          424,
+          299,
+          475
+        ],
+        [
+          238,
+          425,
+          301,
+          477
+        ],
+        [
+          236,
+          320,
+          295,
+          373
+        ],
+        [
+          212,
+          331,
+          271,
+          397
+        ],
+        [
+          201,
+          348,
+          251,
+          409
+        ],
+        [
+          199,
+          349,
+          249,
+          409
+        ]
+      ]
+    },
+    "carry": {
+      "gif": "gifs/carry_file.gif",
+      "loop": true,
+      "props": [
+        [
+          216,
+          364,
+          281,
+          435
+        ],
+        [
+          215,
+          343,
+          279,
+          419
+        ],
+        [
+          224,
+          328,
+          293,
+          402
+        ],
+        [
+          224,
+          317,
+          295,
+          390
+        ],
+        [
+          221,
+          343,
+          287,
+          419
+        ],
+        [
+          218,
+          366,
+          281,
+          443
+        ],
+        [
+          218,
+          371,
+          280,
+          443
+        ],
+        [
+          220,
+          370,
+          283,
+          444
+        ]
+      ]
+    },
+    "celebrate": {
+      "gif": "gifs/data_snack.gif"
+    },
+    "play": {
+      "gif": "gifs/play_orb.gif"
+    },
+    "sad": {
+      "frames": [
+        "clips/sad/01.png",
+        "clips/sad/02.png",
+        "clips/sad/03.png",
+        "clips/sad/04.png",
+        "clips/sad/05.png",
+        "clips/sad/06.png",
+        "clips/sad/07.png",
+        "clips/sad/08.png"
+      ],
+      "fps": 9.09,
+      "loop": false,
+      "anchored": true
+    },
+    "talk": {
+      "frames": [
+        "clips/talk/01.png",
+        "clips/talk/02.png",
+        "clips/talk/03.png",
+        "clips/talk/04.png",
+        "clips/talk/05.png",
+        "clips/talk/06.png",
+        "clips/talk/07.png",
+        "clips/talk/08.png"
+      ],
+      "fps": 9.09,
+      "loop": true,
+      "anchored": true
+    },
+    "held": {
+      "frames": [
+        "clips/held/01.png",
+        "clips/held/02.png",
+        "clips/held/03.png",
+        "clips/held/04.png",
+        "clips/held/05.png",
+        "clips/held/06.png",
+        "clips/held/07.png",
+        "clips/held/08.png"
+      ],
+      "fps": 9.09,
+      "loop": true,
+      "anchored": true,
+      "loop_from": 3
+    },
+    "petted": {
+      "frames": [
+        "clips/petted/01.png",
+        "clips/petted/02.png",
+        "clips/petted/03.png",
+        "clips/petted/04.png",
+        "clips/petted/05.png",
+        "clips/petted/06.png",
+        "clips/petted/07.png",
+        "clips/petted/08.png"
+      ],
+      "fps": 9.09,
+      "loop": true,
+      "anchored": true,
+      "loop_from": 2
+    },
+    "portal_exit": {
+      "frames": [
+        "clips/portal_exit/01.png",
+        "clips/portal_exit/02.png",
+        "clips/portal_exit/03.png",
+        "clips/portal_exit/04.png",
+        "clips/portal_exit/05.png",
+        "clips/portal_exit/06.png",
+        "clips/portal_exit/07.png",
+        "clips/portal_exit/08.png",
+        "clips/portal_exit/09.png",
+        "clips/portal_exit/10.png"
+      ],
+      "fps": 9.09,
+      "loop": false,
+      "anchored": true
+    },
+    "sniff": {
+      "frames": [
+        "clips/sniff/01.png",
+        "clips/sniff/02.png",
+        "clips/sniff/03.png",
+        "clips/sniff/04.png",
+        "clips/sniff/05.png",
+        "clips/sniff/06.png",
+        "clips/sniff/07.png",
+        "clips/sniff/08.png"
+      ],
+      "fps": 9.09,
+      "loop": true,
+      "anchored": true
+    },
+    "stash_item": {
+      "frames": [
+        "clips/stash_item/01.png",
+        "clips/stash_item/02.png",
+        "clips/stash_item/03.png",
+        "clips/stash_item/04.png",
+        "clips/stash_item/05.png",
+        "clips/stash_item/06.png",
+        "clips/stash_item/07.png",
+        "clips/stash_item/08.png",
+        "clips/stash_item/09.png",
+        "clips/stash_item/10.png"
+      ],
+      "fps": 9.09,
+      "loop": false,
+      "anchored": true
+    },
+    "think": {
+      "frames": [
+        "clips/think/01.png",
+        "clips/think/02.png",
+        "clips/think/03.png",
+        "clips/think/04.png",
+        "clips/think/05.png",
+        "clips/think/06.png",
+        "clips/think/07.png",
+        "clips/think/08.png"
+      ],
+      "fps": 9.09,
+      "loop": true,
+      "anchored": true
+    }
   }
 }

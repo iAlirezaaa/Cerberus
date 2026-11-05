@@ -11,6 +11,13 @@ are offered under Apache-2.0 to the extent their respective rights holders
 have authority to license them. The Cerberus name and marks are not granted
 for use as trademarks or to imply endorsement; see section 6 of LICENSE.
 
+Generated animation art and icons
+The clips in cerberus/assets/gifs and cerberus/assets/clips, the item icons in
+cerberus/assets/icons and the working files in art/codex were produced with
+AI image generation (OpenAI Codex image tool) from the project's own Cerberus
+reference art, at the repository owner's request. They are project materials
+under the same terms as the other generated artwork above.
+
 Historical releases
 Earlier Cerberus releases were distributed under MIT and under the
 Cerberus Personal & Paid Production License. Those grants remain effective

@@ -18,6 +18,7 @@ MOUSE_GESTURES: dict[str, str] = {
 SHORTCUT_ACTIONS: dict[str, str] = {
     "summon": "Bring Cerberus to the cursor",
     "toggle": "Toggle: bring back / send away",
+    "minimize": "Minimize / restore",
 }
 DEFAULT_HOTKEY = "Ctrl+Alt+C"
 

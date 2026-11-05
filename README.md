@@ -56,6 +56,10 @@ The desktop pet plays the transparent GIF clips in [`cerberus/assets/gifs/`](cer
 
 **Send away / call back:** hover over Cerberus and click the ↗ button to send it away. While it's gone, a small portal button waits at the screen edge — click it to bring Cerberus back.
 
+**Vault:** previews for images, animated GIFs, PDFs (page 1), text and code files, plus kind icons for everything else. The strip at the top shows where memories are stored, with **Open folder** and **Change…**. Programs and scripts are never opened from the vault.
+
+**Minimize:** hover and click **–**, single-click the tray icon, or use the shortcut. Cerberus becomes a small bubble that you can drag anywhere and drop things on to save them. Click it to bring Cerberus back.
+
 **Wander off & summon:** after about 3 minutes without interaction Cerberus falls asleep, then runs off the nearest screen edge and hides. Press **left + right mouse buttons together** anywhere to bring it back through the portal at your cursor (Windows). Both behaviours can be switched off in the tray menu; `away_seconds` in `settings.json` sets the delay (30–7200).
 
 ## What is Cerberus?

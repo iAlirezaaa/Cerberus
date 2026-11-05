@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased — vault previews, minimized mode, item icons, generated clips
+
+- **Vault previews:** images, animated GIF/WebP, PDF page 1 (with page count), the first 64 KB of text and code files, and a kind icon for everything else. Previews are decoded from an in-memory copy, so the stored file is never locked. The real type is sniffed from the bytes rather than taken from the file name. Saved text is always shown as plain text. Programs and scripts are never opened from the vault; they are shown in their folder instead.
+- **Vault location in the archive window:** "Stored in" strip with Open folder and Change… (same copy-don't-move flow as Settings).
+- **Minimized mode:** a – button on hover, a single tray click, the menu item or the shortcut (new action "Minimize / restore") turns Cerberus into a small bubble where it stood. The bubble restores on click, moves by dragging, and **saves anything dropped on it without restoring**. It is a still image unless hovered, costs no CPU, and is remembered across restarts.
+- **Item icons:** a 16-kind classification (text, link, image, PDF, document, spreadsheet, presentation, archive, code, audio, video, app, font, email, 3D model, file) used in the vault list and previews, with designed icons when bundled.
+- **Clip-ready engine:** optional clips (wake-up, sit/stand bridges, turn-around, held, petted, sad, portal exit, stash item, talk, think, sniff, yawn, scratch ear, chase tail, heads argue, night howl, peek-in, celebrate jump, mini curl) play automatically when present in the pack. Phase timings follow each clip's real length. Soft-alpha PNG frame lists can stand on the ground line like GIFs.
+- `scripts/qa_codex_art.py`: an automatic quality gate for generated frames (one body per frame, no edge slivers, stable scale, baseline).
+- Fixes: deleting an item removes the stored copy before its record, and reports a locked file instead of leaving an orphan.
+
 ## Unreleased — a livelier guardian, settings window and custom shortcuts
 
 - **Alive on screen:** Cerberus strolls along the screen (occasionally with zoomies), turns toward the cursor, cross-fades between clips, kicks up dust when running, floats "z"s while asleep and hearts when petted.
