@@ -22,6 +22,29 @@ class VaultTests(unittest.TestCase):
         self.assertEqual(len(self.vault.search("Production")), 1)
         self.assertEqual(len(self.vault.search("انیمیشن")), 1)
 
+    def test_copy_to_new_folder_keeps_original_and_rewrites_paths(self):
+        source = self.root / "photo.png"
+        source.write_bytes(b"\x89PNG fake image bytes")
+        item = self.vault.add_file(source)
+        self.vault.add_text("note to move")
+        target = self.root / "elsewhere"
+        self.vault.copy_to(target)
+        self.assertTrue(Vault.has_vault(target))
+        self.assertTrue(Path(item["stored_path"]).is_file())  # original untouched
+        moved = Vault(target)
+        try:
+            self.assertEqual(len(moved.list()), 2)
+            copied = moved.get(item["id"])
+            self.assertTrue(Path(copied["stored_path"]).is_relative_to(target.resolve()))
+            self.assertEqual(Path(copied["stored_path"]).read_bytes(), source.read_bytes())
+            self.assertEqual(len(moved.search("move")), 1)
+        finally:
+            moved.close()
+        with self.assertRaises(CaptureError):
+            self.vault.copy_to(target)  # already has a vault
+        with self.assertRaises(CaptureError):
+            self.vault.copy_to(self.root / "data" / "nested")
+
     def test_duplicate_text_returns_same_item(self):
         a = self.vault.add_text("Keep this")
         b = self.vault.add_text("Keep this", title="Different title")

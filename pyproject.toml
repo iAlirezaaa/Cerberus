@@ -25,4 +25,4 @@ cerberus-desktop = "cerberus.app:main"
 include = ["cerberus*"]
 
 [tool.setuptools.package-data]
-cerberus = ["assets/*.svg", "assets/*.png", "assets/*.json"]
+cerberus = ["assets/*.svg", "assets/*.png", "assets/*.json", "assets/gifs/*.gif"]

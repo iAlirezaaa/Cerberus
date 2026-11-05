@@ -5,6 +5,7 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import sqlite3
 import tempfile
 from datetime import datetime, timezone
@@ -12,7 +13,7 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from .settings import data_dir
+from .settings import vault_dir
 
 MAX_TEXT_BYTES = 1024 * 1024
 MAX_FILE_BYTES = 50 * 1024 * 1024
@@ -25,7 +26,7 @@ class CaptureError(ValueError):
 
 class Vault:
     def __init__(self, home: Path | None = None) -> None:
-        self.home = Path(home) if home is not None else data_dir()
+        self.home = Path(home) if home is not None else vault_dir()
         self.home.mkdir(parents=True, exist_ok=True)
         self.files_dir = self.home / "files"
         self.files_dir.mkdir(exist_ok=True)
@@ -269,6 +270,50 @@ class Vault:
             if not candidate.is_symlink() and candidate.resolve().is_relative_to(self.files_dir.resolve()):
                 candidate.unlink(missing_ok=True)
         return True
+
+    @staticmethod
+    def has_vault(folder: Path | str) -> bool:
+        return (Path(folder) / "vault.sqlite3").is_file()
+
+    def copy_to(self, destination: Path | str) -> Path:
+        """Copy the whole vault (database + stored files) into another folder.
+
+        The original stays untouched, so nothing is lost if the copy fails or the
+        user changes their mind. Stored file paths are rewritten for the new home.
+        """
+        target = Path(destination).expanduser().resolve()
+        if target == self.home.resolve():
+            raise CaptureError("That is already the current storage folder")
+        if self.has_vault(target):
+            raise CaptureError("That folder already contains a Cerberus vault")
+        if target.is_relative_to(self.home.resolve()) or self.home.resolve().is_relative_to(target):
+            raise CaptureError("Choose a folder outside the current storage folder")
+        target.mkdir(parents=True, exist_ok=True)
+        new_files = target / "files"
+        new_files.mkdir(exist_ok=True)
+        old_files = self.files_dir.resolve()
+        for source in old_files.rglob("*"):
+            if source.is_symlink() or not source.is_file() or source.name.startswith(".capture-"):
+                continue
+            relative = source.relative_to(old_files)
+            (new_files / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, new_files / relative)
+        db_path = target / "vault.sqlite3"
+        destination_db = sqlite3.connect(db_path)
+        try:
+            self.db.backup(destination_db)
+            rows = destination_db.execute(
+                "SELECT id, stored_path FROM items WHERE stored_path IS NOT NULL").fetchall()
+            with destination_db:
+                for item_id, stored in rows:
+                    path = Path(stored)
+                    if path.resolve().is_relative_to(old_files):
+                        moved = new_files / path.resolve().relative_to(old_files)
+                        destination_db.execute("UPDATE items SET stored_path=? WHERE id=?",
+                                               (str(moved), item_id))
+        finally:
+            destination_db.close()
+        return target
 
     def export_json(self, destination: Path | str) -> Path:
         path = Path(destination).expanduser()

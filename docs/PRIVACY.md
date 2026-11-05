@@ -12,6 +12,8 @@ Cerberus is a user-controlled information catcher, not a surveillance app.
 - Source files are copied, never moved or deleted.
 - Files are limited to 50 MiB, text to 1 MiB. Current exported JSON includes text and metadata, not file contents.
 - The vault is NOT encrypted at rest; do not store passwords, tokens or other secrets.
+- Summon shortcuts (Windows): the chosen mouse gesture uses a low-level mouse hook that looks only at which button was pressed or released, and swallows just the presses that form the gesture. The keyboard shortcut uses RegisterHotKey, which never sees other keys. Nothing is logged or stored. Both can be turned off in Settings.
+- When "walk around" is on, the pet reads the current cursor position about once a second only to decide which way to face. It is not stored.
 
 ### Important clipboard warning
 
