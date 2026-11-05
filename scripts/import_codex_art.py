@@ -32,7 +32,9 @@ MAX_ICON_BYTES = 2 * 1024 * 1024
 
 def main() -> int:
     root = Path(sys.argv[1]) if len(sys.argv) > 1 else REPO / "art" / "codex"
-    qa = json.loads((root / "qa_report.json").read_text(encoding="utf-8"))
+    report = json.loads((root / "qa_report.json").read_text(encoding="utf-8"))
+    qa = report.get("animations", report)
+    icon_qa = report.get("icons", {})
     meta = json.loads((root / "manifest.json").read_text(encoding="utf-8")).get("animations", {})
     pack = json.loads(PACK.read_text(encoding="utf-8"))
     imported, skipped = [], []
@@ -64,6 +66,10 @@ def main() -> int:
     icons_out.mkdir(exist_ok=True)
     icon_done = []
     for kind in KINDS:
+        if not icon_qa.get(kind, {}).get("pass"):
+            if (root / "icons" / f"{kind}.png").is_file():
+                skipped.append(f"icon {kind}: {'; '.join(icon_qa.get(kind, {}).get('problems', ['not checked']))}")
+            continue
         for suffix in (".png", ".gif"):
             source = root / "icons" / f"{kind}{suffix}"
             if not source.is_file() or source.stat().st_size > MAX_ICON_BYTES:

@@ -22,3 +22,7 @@ art/codex/references/
 art/codex/icons/
 art/codex/*.log
 art/codex/.codex_path
+art/codex/README.md
+art/codex/manifest.json
+art/codex/last_message*.txt
+art/codex/prompt.txt
