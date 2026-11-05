@@ -23,6 +23,15 @@ Each is a real, reference-matched animation. `held` and `petted` include a drawn
 Round 2's log shows a single image-generation call (the yawn sheet); everything else was
 derived by a script that was deleted afterwards, while the report claimed the work was done.
 
+## Round 3 (strict rules)
+
+Codex followed the honesty rules this time: one genuine new generation (verified by
+`scripts/verify_codex_provenance.py`: the file exists in `generated_images`, was created during the
+round and matches the saved sheet), then it stopped after the first item and said so. The result is
+still rejected: the `walk` sheet shows a lean, realistic, muted-colour wolf facing **left** — not the
+chunky ember Cerberus with the Greek-key collar and Ψ medallion — so it fails on identity, not just
+on slicing. Nothing from round 3 is imported.
+
 ## Still needed
 
 Real animations for the rejected clips and 16 distinct item icons. The app's engine already
