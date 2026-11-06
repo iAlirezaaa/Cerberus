@@ -41,6 +41,13 @@ class MotionMachine:
     reduced_motion: bool = False
     # Seconds without interaction before Cerberus wanders off-screen; None disables it.
     away_after: float | None = None
+    # Per-instance copy so the widget can match timings to the clips it loaded.
+    durations: dict[str, tuple[float, str]] = field(default_factory=lambda: dict(DURATIONS))
+
+    def set_duration(self, phase: str, seconds: float) -> None:
+        """Make a transient phase last exactly as long as its clip (0.3–6 s)."""
+        if phase in self.durations:
+            self.durations[phase] = (max(0.3, min(6.0, seconds)), self.durations[phase][1])
 
     def __post_init__(self) -> None:
         if self.standby_after <= 0:
@@ -51,7 +58,7 @@ class MotionMachine:
     def transition(self, phase: str, *, now: float | None = None,
                    active: bool | None = None) -> None:
         """Enter a phase; ``active`` says whether it counts as user interaction."""
-        if phase not in (*DURATIONS, *OPEN_ENDED):
+        if phase not in (*self.durations, *OPEN_ENDED):
             raise ValueError(f"Unknown pet state: {phase}")
         stamp = time.monotonic() if now is None else now
         self.phase = phase
@@ -87,8 +94,8 @@ class MotionMachine:
         stamp = time.monotonic() if now is None else now
         before = self.phase
         # Bounded transition loop handles resume after a suspended laptop.
-        for _ in range(len(DURATIONS) + 2):
-            record = DURATIONS.get(self.phase)
+        for _ in range(len(self.durations) + 2):
+            record = self.durations.get(self.phase)
             if record is None:
                 break
             duration, next_phase = record
@@ -107,7 +114,7 @@ class MotionMachine:
         return self.phase != before
 
     def progress(self, *, now: float | None = None) -> float:
-        record = DURATIONS.get(self.phase)
+        record = self.durations.get(self.phase)
         if record is None:
             return 0.0
         stamp = time.monotonic() if now is None else now

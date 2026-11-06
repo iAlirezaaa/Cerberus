@@ -11,7 +11,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 from cerberus.settings import Settings
 
 try:
-    from PySide6.QtCore import QByteArray, QBuffer, QIODevice
+    from PySide6.QtCore import QByteArray, QBuffer, QIODevice, Qt
     from PySide6.QtGui import QColor, QImage
     from PySide6.QtWidgets import QApplication
     from cerberus.pet import DISMISS_RECT, CarryIcon, CerberusPet, ReturnButton
@@ -40,10 +40,10 @@ class GuiSmokeTests(unittest.TestCase):
         self.assertLessEqual(max(pet._sprite.width(), pet._sprite.height()), 768)
         self.assertTrue({"sleep", "dash", "carry", "guard", "arrive", "leave",
                          "idle_look", "idle_wag", "idle_wait", "bark"}.issubset(pet._state_frames))
-        # Every bundled GIF decodes to 8 cropped, transparent frames.
+        # Every bundled clip decodes to cropped, grounded, transparent frames.
         for state, clip in pet._state_frames.items():
             self.assertTrue(clip.anchored, state)
-            self.assertEqual(len(clip.frames), 8, state)
+            self.assertTrue(6 <= len(clip.frames) <= 12, state)
             self.assertTrue(clip.frames[0].toImage().hasAlphaChannel(), state)
             self.assertEqual(clip.frames[0].toImage().pixelColor(0, 0).alpha(), 0, state)
         self.assertIs(pet._frame_for_state("idle", pet.motion.entered_at),
@@ -100,6 +100,10 @@ class GuiSmokeTests(unittest.TestCase):
         now = time.monotonic()
         self.assertTrue(pet._start_walk(now))
         self.assertEqual(pet._phase, "walk")
+        # It gets up first when the bridge clip exists, then walks.
+        self.assertIn(pet._visual_state("walk"), ("walk", "sit_to_run"))
+        pet._walk_hold_until = 0.0
+        pet._override = None
         self.assertEqual(pet._visual_state("walk"), "walk")
         start = pet.x()
         for _ in range(2000):
@@ -129,10 +133,17 @@ class GuiSmokeTests(unittest.TestCase):
         pet.say("pet", force=True)
         self.assertTrue(pet._message)
         self.assertFalse(pet.grab().isNull())
-        # Waking up is the fall-asleep clip played backwards.
+        # Waking up lasts exactly one pass of its clip (generated or reversed fall-asleep).
         wake = pet._state_frames["wake"]
-        sleep = pet._state_frames["sleep"]
-        self.assertIs(wake.frames[0], sleep.frames[-1])
+        self.assertAlmostEqual(pet.motion.durations["wake"][0], wake.total, places=3)
+        self.assertFalse(wake.loop)
+        # Optional clips play over idle and then hand back to the base clip.
+        pet.motion.transition("idle")
+        if "talk" in pet._state_frames:
+            pet.say("idle", force=True)
+            self.assertEqual(pet._visual_state("idle"), "talk")
+            pet._override_until = 0
+            self.assertNotEqual(pet._visual_state("idle"), "talk")
         pet.close()
 
     def test_dismiss_button_and_return_dock(self):
@@ -177,6 +188,117 @@ class GuiSmokeTests(unittest.TestCase):
         dock.close()
         pet.close()
 
+    def test_vault_window_previews_every_kind_from_memory(self):
+        from cerberus.vault import Vault
+        from cerberus.vault_window import VaultWindow
+        from PySide6.QtGui import QPdfWriter, QPainter as QP
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            vault = Vault(root / "v")
+            png = root / "pic.png"
+            image = QImage(60, 40, QImage.Format.Format_ARGB32)
+            image.fill(QColor(200, 60, 20))
+            image.save(str(png))
+            pdf = root / "doc.pdf"
+            writer = QPdfWriter(str(pdf))
+            p = QP(writer)
+            p.drawText(100, 100, "Hello PDF")
+            p.end()
+            fake = root / "fake.png"
+            fake.write_bytes(b"MZ this is not an image")
+            code = root / "script.py"
+            code.write_text("print('hi')\u202e\n", encoding="utf-8")
+            for path in (png, pdf, fake, code):
+                vault.add_file(path)
+            vault.add_text("<b>not bold</b> <img src='C:/Windows/win.ini'>")
+            vault.add_url("https://example.org/page")
+            window = VaultWindow(vault, change_storage=lambda parent: None)
+            window.show()
+            self.app.processEvents()
+            self.assertIn(str(vault.home.resolve()), window.location.text())
+            seen = {}
+            for row in range(window.items.count()):
+                window.items.setCurrentRow(row)
+                window.show_details(window.items.currentItem())
+                self.app.processEvents()
+                item = window.selected()
+                seen[item["title"]] = (window.stack.currentWidget(), window.detail_meta.text())
+            self.assertIs(seen["pic.png"][0], window.preview)
+            self.assertIn("page", seen["doc.pdf"][1])
+            self.assertIs(seen["script.py"][0], window.text_view)
+            # Rich text is never interpreted.
+            self.assertEqual(window.detail_title.textFormat(), Qt.TextFormat.PlainText)
+            # Previews read from memory: deleting the selected PDF works on Windows.
+            for row in range(window.items.count()):
+                window.items.setCurrentRow(row)
+                if window.selected()["title"] == "doc.pdf":
+                    break
+            window.show_details(window.items.currentItem())
+            stored = Path(window.selected()["stored_path"])
+            vault.delete(window.selected()["id"])
+            self.assertFalse(stored.exists())
+            window.close()
+            vault.close()
+
+    def test_minimize_restore_and_capture_while_minimized(self):
+        with tempfile.TemporaryDirectory() as folder:
+            previous = os.environ.get("CERBERUS_HOME")
+            os.environ["CERBERUS_HOME"] = str(Path(folder) / "home")
+            controller = None
+            try:
+                controller = Controller(self.app)
+                controller.pet.show()
+                self.app.processEvents()
+                controller.minimize()
+                # With a portal-exit clip it hops into the portal first.
+                deadline = time.monotonic() + 5
+                while not controller.bubble.isVisible() and time.monotonic() < deadline:
+                    self.app.processEvents()
+                    time.sleep(0.02)
+                self.assertTrue(controller.minimized)
+                self.assertFalse(controller.pet.isVisible())
+                self.assertFalse(controller.pet._timer.isActive())
+                self.assertTrue(controller.bubble.isVisible())
+                self.assertTrue(Settings.load(controller.home).minimized)
+                # Dropping on the bubble saves without bringing the pet back.
+                controller.capture("text", "saved while minimized")
+                self.assertEqual(len(controller.vault.search("minimized")), 1)
+                self.assertTrue(controller.minimized)
+                self.assertFalse(controller.pet.isVisible())
+                # A long time passes; restoring must not make it run off at once.
+                controller.pet.motion.last_active_at -= 10_000
+                controller.restore()
+                self.app.processEvents()
+                self.assertFalse(controller.minimized)
+                self.assertTrue(controller.pet.isVisible())
+                self.assertEqual(controller.pet._phase, "arrive")
+                controller.pet._tick()
+                self.assertFalse(controller.pet.is_away)
+                self.assertFalse(controller.bubble.isVisible())
+                # Shortcut action "minimize" toggles; "send away" is ignored while minimized.
+                controller.set_shortcut_action("minimize")
+                controller.shortcut_fired()
+                self.assertTrue(controller.minimized)
+                controller.send_away()
+                self.assertTrue(controller.minimized)
+                controller.summon_pet()
+                self.assertFalse(controller.minimized)
+                self.assertTrue(controller.pet.isVisible())
+            finally:
+                if controller is not None:
+                    controller.gesture_hook.stop()
+                    controller.hotkey.unregister()
+                    controller.bubble.close()
+                    controller.dock.close()
+                    controller.tray.hide()
+                    controller.pet.close()
+                    controller.window.close()
+                    controller.vault.close()
+                if previous is None:
+                    os.environ.pop("CERBERUS_HOME", None)
+                else:
+                    os.environ["CERBERUS_HOME"] = previous
+
     def test_idle_rotates_between_clips(self):
         pet = CerberusPet()
         seen = set()
@@ -204,12 +326,13 @@ class GuiSmokeTests(unittest.TestCase):
                 self.assertEqual(controller.window.items.count(), 2)
                 self.assertEqual(controller.window.stat_labels["total"].text(), "2")
                 self.assertEqual(controller.window.detail_title.text(), "captured-image.png")
-                self.assertIn("FILE ATTACHMENT", controller.window.preview.text())
+                # Not a real image: shown as the kind icon, never handed to a decoder.
+                self.assertFalse(controller.window.preview.pixmap().isNull())
                 controller.window.search_box.setText("visual")
                 self.app.processEvents()
                 self.assertEqual(controller.window.items.count(), 1)
-                self.assertIn("visual smoke-test", controller.window.detail_body.text())
-                self.assertEqual(controller.window.preview.text(), "MEMORY PREVIEW")
+                self.assertIn("visual smoke-test", controller.window.text_view.toPlainText())
+                self.assertIs(controller.window.stack.currentWidget(), controller.window.text_view)
                 # File capture carries the file-type label for the paw icon.
                 note = Path(folder) / "report.pdf"
                 note.write_bytes(b"%PDF-1.4 smoke")

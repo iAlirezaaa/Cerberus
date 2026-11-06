@@ -6,7 +6,7 @@ import sys
 import time
 from pathlib import Path
 
-from PySide6.QtCore import QByteArray, QBuffer, QFileInfo, QIODevice, QLocale, QSize, Qt, QTimer, QUrl
+from PySide6.QtCore import QByteArray, QBuffer, QFileInfo, QIODevice, QLocale, QPoint, QSize, Qt, QTimer, QUrl
 from PySide6.QtGui import QAction, QColor, QDesktopServices, QIcon, QImageReader, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QFileDialog, QFileIconProvider, QFrame, QHBoxLayout, QLabel, QLineEdit,
@@ -14,10 +14,13 @@ from PySide6.QtWidgets import (
     QVBoxLayout, QWidget,
 )
 
-from .pet import CarryIcon, CerberusPet, ReturnButton, mime_image_png
+from .icons import has_designed_icon, kind_icon
+from .item_kinds import kind_for_path
+from .pet import CarryIcon, CerberusPet, MiniBubble, mime_image_png
 from .quips import resolve_language
 from .settings import Settings, data_dir, vault_dir
-from .settings_window import SettingsWindow
+from .settings_window import SettingsWindow, prompt_storage_change
+from .vault_window import VaultWindow
 from .shortcuts import MOUSE_GESTURES, SHORTCUT_ACTIONS, ChordEdge
 from .vault import CaptureError, Vault
 from .win_input import IS_WINDOWS, GlobalHotkey, MouseGestureHook, read_buttons
@@ -51,218 +54,6 @@ def tray_icon(sprite: QPixmap | None = None) -> QIcon:
     return QIcon(pixmap)
 
 
-class VaultWindow(QWidget):
-    def __init__(self, vault: Vault) -> None:
-        super().__init__()
-        self.vault = vault
-        self.setWindowTitle("Cerberus — Memory Archive")
-        self.resize(920, 640)
-        self.setMinimumSize(720, 500)
-        self.setStyleSheet("""
-            QWidget { background: #100d11; color: #eee7df; font-size: 13px; }
-            QLabel#eyebrow { color: #f08a55; font-size: 10px; font-weight: 700; letter-spacing: 2px; }
-            QLabel#title { color: #fff2df; font-size: 26px; font-weight: 700; }
-            QLabel#muted { color: #a99b98; }
-            QFrame#statCard, QFrame#detailCard { background: #19151b; border: 1px solid #3a2930; border-radius: 12px; }
-            QLabel#statValue { color: #ffc27c; font-size: 22px; font-weight: 700; }
-            QLabel#statLabel { color: #b8a8a1; font-size: 11px; }
-            QLineEdit, QListWidget, QTextEdit { background: #171319; border: 1px solid #49333a;
-              border-radius: 9px; padding: 10px; selection-background-color: #6e342d; }
-            QListWidget::item { padding: 10px 8px; border-bottom: 1px solid #2a2028; }
-            QListWidget::item:selected { background: #302027; border-radius: 6px; color: #ffd5a2; }
-            QPushButton { background: #592d2a; border: 1px solid #a34e38; border-radius: 8px; padding: 9px 14px; }
-            QPushButton:hover { background: #793d30; }
-            QPushButton#secondary { background: #211a22; border-color: #4b3741; }
-            QPushButton#secondary:hover { background: #33232b; }
-        """)
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(24, 22, 24, 20)
-        layout.setSpacing(14)
-        eyebrow = QLabel("CERBERUS  /  PRIVATE MEMORY")
-        eyebrow.setObjectName("eyebrow")
-        layout.addWidget(eyebrow)
-        title_row = QHBoxLayout()
-        title_block = QVBoxLayout()
-        title = QLabel("The Archive")
-        title.setObjectName("title")
-        subtitle = QLabel("Everything you entrust to your guardian, gathered in one place.")
-        subtitle.setObjectName("muted")
-        title_block.addWidget(title)
-        title_block.addWidget(subtitle)
-        title_row.addLayout(title_block, 1)
-        export_button = QPushButton("Export archive JSON")
-        export_button.setObjectName("secondary")
-        export_button.clicked.connect(self.export_archive)
-        title_row.addWidget(export_button, 0, Qt.AlignmentFlag.AlignBottom)
-        layout.addLayout(title_row)
-
-        stats_row = QHBoxLayout()
-        self.stat_labels: dict[str, QLabel] = {}
-        for key, label in (("total", "MEMORIES GUARDED"), ("text", "TEXT NOTES"), ("file", "FILES & IMAGES")):
-            card = QFrame()
-            card.setObjectName("statCard")
-            card_layout = QVBoxLayout(card)
-            card_layout.setContentsMargins(14, 10, 14, 10)
-            value = QLabel("0")
-            value.setObjectName("statValue")
-            caption = QLabel(label)
-            caption.setObjectName("statLabel")
-            card_layout.addWidget(value)
-            card_layout.addWidget(caption)
-            stats_row.addWidget(card)
-            self.stat_labels[key] = value
-        stats_row.addStretch(1)
-        layout.addLayout(stats_row)
-
-        self.search_box = QLineEdit()
-        self.search_box.setPlaceholderText("Search your saved memories…")
-        self.search_box.textChanged.connect(self.refresh)
-        layout.addWidget(self.search_box)
-
-        content_row = QHBoxLayout()
-        self.items = QListWidget()
-        self.items.itemDoubleClicked.connect(self.open_selected)
-        self.items.currentItemChanged.connect(self.show_details)
-        content_row.addWidget(self.items, 3)
-        detail = QFrame()
-        detail.setObjectName("detailCard")
-        detail_layout = QVBoxLayout(detail)
-        detail_layout.setContentsMargins(16, 16, 16, 16)
-        self.preview = QLabel("Select a memory to inspect it")
-        self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.preview.setMinimumHeight(170)
-        self.preview.setStyleSheet("background:#110e13; border-radius:9px; color:#8e7c7c; padding:10px;")
-        self.preview.setWordWrap(True)
-        self.detail_title = QLabel("Your memories")
-        self.detail_title.setWordWrap(True)
-        self.detail_title.setStyleSheet("font-size:17px;font-weight:700;color:#ffe3bf;")
-        self.detail_meta = QLabel("Choose an item from the archive")
-        self.detail_meta.setObjectName("muted")
-        self.detail_meta.setWordWrap(True)
-        self.detail_body = QLabel("A private collection, stored locally on this device.")
-        self.detail_body.setWordWrap(True)
-        self.detail_body.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-        self.detail_body.setStyleSheet("color:#d3c8c2; line-height:1.35;")
-        detail_layout.addWidget(self.preview, 2)
-        detail_layout.addWidget(self.detail_title)
-        detail_layout.addWidget(self.detail_meta)
-        detail_layout.addWidget(self.detail_body, 3)
-        content_row.addWidget(detail, 2)
-        layout.addLayout(content_row, 1)
-
-        row = QHBoxLayout()
-        for label, callback in [
-            ("Copy text / URL", self.copy_selected),
-            ("Open saved file", self.open_selected),
-            ("Delete", self.delete_selected),
-        ]:
-            button = QPushButton(label)
-            button.setObjectName("secondary" if label != "Delete" else "")
-            button.clicked.connect(callback)
-            row.addWidget(button)
-        row.addStretch(1)
-        refresh_button = QPushButton("Refresh")
-        refresh_button.setObjectName("secondary")
-        refresh_button.clicked.connect(self.refresh)
-        row.addWidget(refresh_button)
-        layout.addLayout(row)
-        self.refresh()
-
-    def selected(self) -> dict | None:
-        item = self.items.currentItem()
-        return self.vault.get(item.data(Qt.ItemDataRole.UserRole)) if item else None
-
-    def refresh(self, *_: object) -> None:
-        selected = self.selected()
-        selected_id = selected["id"] if selected else None
-        self.items.clear()
-        stats = self.vault.stats()
-        self.stat_labels["total"].setText(str(stats["total"]))
-        self.stat_labels["text"].setText(str(stats["by_kind"]["text"]))
-        self.stat_labels["file"].setText(str(stats["by_kind"]["file"]))
-        for item in self.vault.search(self.search_box.text()):
-            display = f'[{item["kind"].upper()}]  {item["title"]}    ·    {item["created_at"][:16]}'
-            widget_item = QListWidgetItem(display)
-            widget_item.setData(Qt.ItemDataRole.UserRole, item["id"])
-            self.items.addItem(widget_item)
-            if selected_id == item["id"]:
-                self.items.setCurrentItem(widget_item)
-        if self.items.currentItem() is None and self.items.count():
-            self.items.setCurrentRow(0)
-        elif self.items.currentItem() is None:
-            self.show_details(None, None)
-
-    def show_details(self, current: QListWidgetItem | None, *_: object) -> None:
-        item = self.vault.get(current.data(Qt.ItemDataRole.UserRole)) if current else None
-        if not item:
-            self.detail_title.setText("Your memories")
-            self.detail_meta.setText("Choose an item from the archive")
-            self.detail_body.setText("A private collection, stored locally on this device.")
-            self.preview.setPixmap(QPixmap())
-            self.preview.setText("Select a memory to inspect it")
-            return
-
-        self.detail_title.setText(item["title"])
-        self.detail_meta.setText(f'{item["kind"].upper()}  ·  {item["created_at"][:19].replace("T", " ")}\nSource: {item["source"]}')
-        if item["kind"] in ("text", "url"):
-            content = item["content"]
-            self.detail_body.setText(content[:4000] + ("\n… preview truncated" if len(content) > 4000 else ""))
-        else:
-            self.detail_body.setText(f'Original name: {item.get("original_name") or item["title"]}\nStored in your local Cerberus archive.')
-        self.preview.setPixmap(QPixmap())
-        self.preview.setText("MEMORY PREVIEW" if item["kind"] in ("text", "url") else "FILE ATTACHMENT  ·  OPEN MANUALLY")
-        stored = item.get("stored_path")
-        if item["kind"] == "file" and stored:
-            path = Path(stored)
-            in_vault = path.resolve().is_relative_to(self.vault.files_dir.resolve())
-            if in_vault and path.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"} and path.is_file():
-                reader = QImageReader(str(path))
-                dimensions = reader.size()
-                if dimensions.isValid() and dimensions.width() * dimensions.height() <= 16_000_000:
-                    target = QSize(self.preview.width() - 20, 190)
-                    scaled = dimensions.scaled(target, Qt.AspectRatioMode.KeepAspectRatio)
-                    reader.setScaledSize(scaled)
-                    image = reader.read()
-                    if not image.isNull():
-                        self.preview.setPixmap(QPixmap.fromImage(image).scaled(
-                            self.preview.size(), Qt.AspectRatioMode.KeepAspectRatio,
-                            Qt.TransformationMode.SmoothTransformation))
-                        self.preview.setText("")
-
-    def export_archive(self, *_: object) -> None:
-        path, _ = QFileDialog.getSaveFileName(self, "Export Cerberus archive", "cerberus-export.json", "JSON files (*.json)")
-        if not path:
-            return
-        try:
-            self.vault.export_json(path)
-        except OSError as exc:
-            QMessageBox.warning(self, "Export failed", str(exc))
-            return
-        QMessageBox.information(self, "Archive exported", "Archive metadata and text were exported. Attached file bytes remain in the local vault.")
-
-    def copy_selected(self, *_: object) -> None:
-        item = self.selected()
-        if item and item["kind"] in ("text", "url"):
-            QApplication.clipboard().setText(item["content"])
-
-    def open_selected(self, *_: object) -> None:
-        item = self.selected()
-        if item and item["kind"] == "file" and item["stored_path"]:
-            path = Path(item["stored_path"])
-            if path.is_file():
-                QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
-
-    def delete_selected(self, *_: object) -> None:
-        item = self.selected()
-        if item is None:
-            return
-        answer = QMessageBox.question(self, "Delete memory",
-            f'Delete "{item["title"]}" from the Cerberus vault?')
-        if answer == QMessageBox.StandardButton.Yes:
-            self.vault.delete(item["id"])
-            self.refresh()
-
-
 class Controller:
     def __init__(self, app: QApplication) -> None:
         self.app = app
@@ -275,7 +66,7 @@ class Controller:
             # A custom folder on a removed drive must not stop the app.
             self._storage_warning = f"Storage folder unavailable ({exc}); using the default."
             self.vault = Vault(self.home)
-        self.window = VaultWindow(self.vault)
+        self.window = VaultWindow(self.vault, change_storage=self.ask_change_storage)
         self.settings_window: SettingsWindow | None = None
         self.pet = CerberusPet(
             reduced_motion=self.settings.reduced_motion,
@@ -291,9 +82,21 @@ class Controller:
         self.pet.menu_requested.connect(self.open_menu)
         self.pet.dismiss_requested.connect(self.send_away)
         self.pet.went_away.connect(self.pet_went_away)
+        self.pet.minimize_requested.connect(self.minimize)
         self.pet.came_back.connect(self.pet_came_back)
-        self.dock = ReturnButton(self.pet._sprite)
+        # Docked at the screen edge while Cerberus is away.
+        self.dock = MiniBubble(self.pet._sprite, reduced_motion=self.settings.reduced_motion)
         self.dock.clicked.connect(self.summon_pet)
+        self.dock.dropped.connect(self.capture)
+        self.dock.menu_requested.connect(self.open_menu)
+        # The minimized Cerberus: a bubble that still accepts drops.
+        self.minimized = False
+        self.bubble = MiniBubble(self.pet._sprite, self.pet._state_frames.get("mini_curl"),
+                                 size=84, reduced_motion=self.settings.reduced_motion)
+        self.bubble.clicked.connect(self.restore)
+        self.bubble.dropped.connect(self.capture)
+        self.bubble.moved.connect(self.bubble_moved)
+        self.bubble.menu_requested.connect(self.open_menu)
         self.tray = QSystemTrayIcon(tray_icon(self.pet._sprite), app)
         self.tray.setToolTip("Cerberus — your memory guardian")
         self.menu = QMenu()
@@ -305,6 +108,7 @@ class Controller:
         self.menu.addSeparator()
         self.menu.addAction("Call Cerberus here", self.summon_pet)
         self.menu.addAction("Send Cerberus away", self.send_away)
+        self.menu.addAction("Minimize / restore", self.toggle_minimized)
         self.menu.addAction("Play with Cerberus", lambda: self.pet.play("play"))
         self.menu.addAction("Guard the vault", lambda: self.pet.play("guard"))
         self.menu.addAction("Sleep / standby", lambda: self.pet.play("sleep"))
@@ -340,7 +144,9 @@ class Controller:
         self.apply_shortcuts()
         self.app.clipboard().dataChanged.connect(self.clipboard_changed)
         self.app.aboutToQuit.connect(self.shutdown)
-        if self.settings.show_pet:
+        if self.settings.show_pet and self.settings.minimized:
+            self._start_minimized()
+        elif self.settings.show_pet:
             self.pet.show()
             QTimer.singleShot(1200, self.pet.greet)
         if self._storage_warning:
@@ -351,6 +157,8 @@ class Controller:
         return resolve_language(self.settings.language, QLocale.system().name())
 
     def shutdown(self) -> None:
+        self.bubble.hide()
+        self.dock.hide()
         self.gesture_hook.stop()
         self.hotkey.unregister()
         self.chord_timer.stop()
@@ -393,24 +201,106 @@ class Controller:
             self.shortcut_fired()
 
     def shortcut_fired(self) -> None:
-        if (self.settings.shortcut_action == "toggle" and self.pet.isVisible()
-                and not self.pet.is_away):
+        action = self.settings.shortcut_action
+        if action == "minimize":
+            self.toggle_minimized()
+        elif (action == "toggle" and not self.minimized and self.pet.isVisible()
+              and not self.pet.is_away):
             self.send_away()
         else:
             self.summon_pet()
 
     # ----- presence --------------------------------------------------------
     def summon_pet(self, *_: object) -> None:
-        """Bring Cerberus to the mouse cursor through the portal."""
+        """Bring Cerberus to the mouse cursor through the portal (from any state)."""
+        if self.minimized:
+            self.restore(at_cursor=True)
+            return
         if not self.settings.show_pet:
             self.settings.show_pet = True
-            self.settings.save(self.home)
+            self._save()
         self.dock.hide()
         was_away = self.pet.is_away or not self.pet.isVisible()
         self.pet.arrive(self.pet.quips.pick("arrive") if was_away else "")
 
+    # ----- minimized mode --------------------------------------------------
+    #   state      | minimize          | restore / summon      | send away | capture
+    #   visible    | portal -> bubble  | (summon: to cursor)   | runs off  | pet celebrates
+    #   away       | dock -> bubble    | portal at cursor      | -         | pet returns
+    #   hidden     | bubble            | shown at cursor       | -         | pet returns
+    #   minimized  | restore           | at bubble / cursor    | -         | bubble flashes
+    def minimize(self, *_: object) -> None:
+        if self.minimized:
+            return
+        self.minimized = True
+        self.dock.hide()
+        feet = (self.pet.feet_position()
+                if self.pet.isVisible() and not self.pet.is_away else None)
+
+        def finish() -> None:
+            if not self.minimized:  # restored while the exit clip played
+                return
+            self.pet.freeze()
+            if feet is not None:
+                self.bubble.show_centered(feet)
+            else:
+                self._show_bubble_at_saved()
+            self.settings.minimized = True
+            self.settings.bubble_x, self.settings.bubble_y = self.bubble.x(), self.bubble.y()
+            self._save()
+
+        if feet is not None:
+            self.pet.vanish(finish)
+        else:
+            finish()
+
+    def _show_bubble_at_saved(self) -> None:
+        if self.settings.bubble_x >= 0 and self.settings.bubble_y >= 0:
+            self.bubble.move(self.bubble._clamp(QPoint(self.settings.bubble_x,
+                                                       self.settings.bubble_y)))
+            self.bubble._show()
+        else:
+            screen = QApplication.primaryScreen()
+            area = screen.availableGeometry() if screen else None
+            if area is None:
+                return
+            self.bubble.show_centered(QPoint(area.right() - 80, area.bottom() - 10))
+
+    def _start_minimized(self) -> None:
+        self.minimized = True
+        self.pet.freeze()
+        self._show_bubble_at_saved()
+
+    def restore(self, *_: object, at_cursor: bool = False) -> None:
+        if not self.minimized:
+            return
+        self.minimized = False
+        point = self.bubble.geometry().center()
+        point.setY(self.bubble.geometry().bottom())
+        self.bubble.hide()
+        self.settings.minimized = False
+        self.settings.show_pet = True
+        self._save()
+        message = self.pet.quips.pick("arrive")
+        if at_cursor:
+            self.pet.arrive(message)
+        else:
+            self.pet.arrive(message, at=point)
+
+    def toggle_minimized(self, *_: object) -> None:
+        if self.minimized:
+            self.restore()
+        else:
+            self.minimize()
+
+    def bubble_moved(self, point) -> None:
+        if self.minimized:
+            self.settings.bubble_x, self.settings.bubble_y = point.x(), point.y()
+            self._save()
+
     def send_away(self, *_: object) -> None:
-        self.pet.dismiss()
+        if not self.minimized:
+            self.pet.dismiss()
 
     def pet_went_away(self, side: int, bottom_y: int) -> None:
         if self.settings.show_return_button:
@@ -420,8 +310,10 @@ class Controller:
         self.dock.hide()
 
     def tray_activated(self, reason) -> None:
-        if reason == QSystemTrayIcon.ActivationReason.DoubleClick:
-            self.toggle_pet()
+        # One click minimizes / restores. (A double-click also starts with this click,
+        # so it is not given a second, conflicting meaning.)
+        if reason == QSystemTrayIcon.ActivationReason.Trigger:
+            self.toggle_minimized()
 
     def open_menu(self, where) -> None:
         self.menu.exec(where)
@@ -440,15 +332,17 @@ class Controller:
         self.settings_window.activateWindow()
 
     def toggle_pet(self, *_: object) -> None:
-        if self.pet.is_away:
+        if self.minimized or self.pet.is_away:
             self.summon_pet()
             return
         visible = not self.pet.isVisible()
-        self.pet.setVisible(visible)
-        if not visible:
+        if visible:
+            self.pet.arrive()
+        else:
+            self.pet.hide()
             self.dock.hide()
         self.settings.show_pet = visible
-        self.settings.save(self.home)
+        self._save()
 
     # ----- settings (also driven by SettingsWindow) ------------------------
     def _save(self) -> None:
@@ -469,6 +363,7 @@ class Controller:
     def set_reduced_motion(self, enabled: bool) -> None:
         self.settings.reduced_motion = enabled
         self.pet.set_reduced_motion(enabled)
+        self.bubble.reduced_motion = self.dock.reduced_motion = enabled
         if self.motion_action.isChecked() != enabled:
             self.motion_action.setChecked(enabled)
         self._save()
@@ -527,6 +422,11 @@ class Controller:
             self.settings.shortcut_action = action
             self._save()
 
+    def ask_change_storage(self, parent) -> None:
+        prompt_storage_change(self, parent)
+        if self.settings_window is not None:
+            self.settings_window.refresh_storage()
+
     def change_storage(self, folder: Path, *, copy_existing: bool) -> None:
         """Point the vault at another folder, optionally copying current memories."""
         folder = Path(folder).resolve()
@@ -535,7 +435,7 @@ class Controller:
         new_vault = Vault(folder)
         old = self.vault
         self.vault = new_vault
-        self.window.vault = new_vault
+        self.window.set_vault(new_vault)
         old.close()
         self.settings.storage_dir = "" if folder == self.home.resolve() else str(folder)
         self._save()
@@ -584,7 +484,8 @@ class Controller:
                            if len(paths) == 1 else quips.pick("capture_files", count=len(paths)))
             elif kind == "text":
                 item = self.vault.capture_text(str(value), source="drop-or-clipboard")
-                carry = CarryIcon("url" if item["kind"] == "url" else "text")
+                carry = designed_carry("link" if item["kind"] == "url" else "text",
+                                       "url" if item["kind"] == "url" else "text")
                 message = quips.pick("capture_url" if item["kind"] == "url" else "capture_text")
             elif kind == "image":
                 self.vault.add_bytes(bytes(value), name="captured-image.png", source="drop-or-clipboard")
@@ -595,13 +496,28 @@ class Controller:
             total = self.vault.stats()["total"]
             if total in MILESTONES:
                 message = quips.pick("milestone", total=total)
-            self.dock.hide()
-            self.pet.summon(message, carry)
             if self.window.isVisible():
                 self.window.refresh()
         except (CaptureError, OSError, ValueError) as exc:
+            if self.minimized:
+                # Stay small: a tray notice instead of a dialog or the pet popping up.
+                self.bubble.flash(quips.pick("error"))
+                self.tray.showMessage("Cerberus couldn't save that", str(exc)[:200],
+                                      QSystemTrayIcon.MessageIcon.Warning, 4000)
+                return
+            self.pet.sad()
             self.pet.tell(f'{quips.pick("error")} ({exc})'[:90])
             QMessageBox.warning(self.window, "Cerberus — Capture error", str(exc))
+            return
+        self.celebrate(message, carry)
+
+    def celebrate(self, message: str, carry: CarryIcon | None) -> None:
+        """Show that something was saved: the bubble flashes when minimized."""
+        if self.minimized:
+            self.bubble.flash(message)
+            return
+        self.dock.hide()
+        self.pet.summon(message, carry)
 
 
 MILESTONES = {10, 25, 50, 100, 250, 500, 1000, 2500, 5000}
@@ -632,13 +548,23 @@ def image_thumbnail(data: bytes | None = None, path: Path | None = None,
     return None if image.isNull() else QPixmap.fromImage(image)
 
 
+def designed_carry(kind: str, carry_kind: str, label: str = "") -> CarryIcon:
+    """Carry the designed ember icon for this kind (falls back to the drawn glyph)."""
+    if has_designed_icon(kind):
+        return CarryIcon(carry_kind, kind_icon(kind, 96), label)
+    return CarryIcon(carry_kind, None, label)
+
+
 def carry_icon_for_file(original: Path, stored: str | None) -> CarryIcon:
-    """The file's own thumbnail (images) or its system file-type icon."""
+    """The image's own thumbnail, the designed kind icon, or the system file-type icon."""
     label = original.suffix.lstrip(".").upper()[:4] or "FILE"
     if original.suffix.lower() in IMAGE_SUFFIXES and stored:
         thumb = image_thumbnail(path=Path(stored))
         if thumb is not None:
             return CarryIcon("image", thumb, label)
+    kind = kind_for_path(original.name)
+    if has_designed_icon(kind):
+        return CarryIcon("file", kind_icon(kind, 96), label)
     icon = QFileIconProvider().icon(QFileInfo(str(original)))
     pixmap = icon.pixmap(48, 48) if not icon.isNull() else None
     return CarryIcon("file", pixmap if pixmap is not None and not pixmap.isNull() else None, label)

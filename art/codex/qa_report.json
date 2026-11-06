@@ -1,0 +1,275 @@
+{
+  "animations": {
+    "celebrate_jump": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "4/8 frames are copies of existing approved clips",
+        "8/8 frames duplicate the chase_tail clip"
+      ]
+    },
+    "chase_tail": {
+      "pass": false,
+      "frames": 10,
+      "problems": [
+        "5/10 frames are copies of existing approved clips",
+        "10/10 frames duplicate the celebrate_jump clip"
+      ]
+    },
+    "heads_argue": {
+      "pass": false,
+      "frames": 10,
+      "problems": [
+        "10/10 frames are copies of existing approved clips",
+        "10/10 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 0.00 per frame, needs 3.0); frames look repeated",
+        "9 pairs of consecutive frames are identical",
+        "the pose never changes (max 0.00); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "held": {
+      "pass": true,
+      "frames": 8,
+      "problems": []
+    },
+    "howl": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "5/8 frames are copies of existing approved clips",
+        "5/8 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 2.71 per frame, needs 3.0); frames look repeated",
+        "5 pairs of consecutive frames are identical"
+      ]
+    },
+    "mini_curl": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "8/8 frames duplicate the mini_wake clip",
+        "the pose never changes (max 5.31); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "mini_wake": {
+      "pass": false,
+      "frames": 6,
+      "problems": [
+        "6/6 frames duplicate the mini_curl clip",
+        "the pose never changes (max 5.31); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "peek_in": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "8/8 frames are copies of existing approved clips",
+        "8/8 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 0.00 per frame, needs 3.0); frames look repeated",
+        "7 pairs of consecutive frames are identical",
+        "the pose never changes (max 0.00); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "petted": {
+      "pass": true,
+      "frames": 8,
+      "problems": []
+    },
+    "portal_exit": {
+      "pass": true,
+      "frames": 10,
+      "problems": []
+    },
+    "run_to_sit": {
+      "pass": false,
+      "frames": 6,
+      "problems": [
+        "6/6 frames are copies of existing approved clips",
+        "6/6 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 0.00 per frame, needs 3.0); frames look repeated",
+        "5 pairs of consecutive frames are identical",
+        "the pose never changes (max 0.00); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "sad": {
+      "pass": true,
+      "frames": 8,
+      "problems": []
+    },
+    "scratch_ear": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "8/8 frames are copies of existing approved clips",
+        "8/8 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 0.00 per frame, needs 3.0); frames look repeated",
+        "7 pairs of consecutive frames are identical",
+        "the pose never changes (max 0.00); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "sit_to_run": {
+      "pass": false,
+      "frames": 6,
+      "problems": [
+        "6/6 frames are copies of existing approved clips",
+        "6/6 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 0.00 per frame, needs 3.0); frames look repeated",
+        "5 pairs of consecutive frames are identical",
+        "the pose never changes (max 0.00); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "sniff": {
+      "pass": true,
+      "frames": 8,
+      "problems": []
+    },
+    "stash_item": {
+      "pass": true,
+      "frames": 10,
+      "problems": []
+    },
+    "talk": {
+      "pass": true,
+      "frames": 8,
+      "problems": []
+    },
+    "think": {
+      "pass": true,
+      "frames": 8,
+      "problems": []
+    },
+    "turn_around": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "6/8 frames are copies of existing approved clips",
+        "6/8 frames duplicate the celebrate_jump clip",
+        "5 pairs of consecutive frames are identical"
+      ]
+    },
+    "wake_up": {
+      "pass": true,
+      "frames": 10,
+      "problems": []
+    },
+    "walk": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "8/8 frames are copies of existing approved clips",
+        "8/8 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 0.00 per frame, needs 3.0); frames look repeated",
+        "7 pairs of consecutive frames are identical",
+        "the pose never changes (max 0.00); it is one drawing moved or scaled, not an animation"
+      ]
+    },
+    "yawn": {
+      "pass": false,
+      "frames": 8,
+      "problems": [
+        "8/8 frames are copies of existing approved clips",
+        "8/8 frames duplicate the celebrate_jump clip",
+        "barely moves (mean change 0.00 per frame, needs 3.0); frames look repeated",
+        "7 pairs of consecutive frames are identical",
+        "the pose never changes (max 0.00); it is one drawing moved or scaled, not an animation"
+      ]
+    }
+  },
+  "icons": {
+    "app": {
+      "pass": false,
+      "problems": [
+        "looks the same as: archive, audio, code, document, email, file \u2026"
+      ]
+    },
+    "archive": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, audio, code, document, email, file \u2026"
+      ]
+    },
+    "audio": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, code, document, email, file \u2026"
+      ]
+    },
+    "code": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, document, email, file \u2026"
+      ]
+    },
+    "document": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, email, file \u2026"
+      ]
+    },
+    "email": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, file \u2026"
+      ]
+    },
+    "file": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "font": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "image": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "link": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "model3d": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "pdf": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "presentation": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "spreadsheet": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "text": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    },
+    "video": {
+      "pass": false,
+      "problems": [
+        "looks the same as: app, archive, audio, code, document, email \u2026"
+      ]
+    }
+  }
+}

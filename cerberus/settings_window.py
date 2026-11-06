@@ -60,6 +60,42 @@ def _human(size: int) -> str:
     return f"{size} B"
 
 
+def prompt_storage_change(controller, parent: QWidget, folder: Path | None = None) -> bool:
+    """Ask for a folder (unless given), confirm copy/switch, then move the vault there."""
+    if folder is None:
+        chosen = QFileDialog.getExistingDirectory(
+            parent, "Choose where Cerberus keeps your memories", str(controller.vault.home))
+        if not chosen:
+            return False
+        folder = Path(chosen)
+    folder = folder.resolve()
+    if folder == controller.vault.home.resolve():
+        return False
+    copy = False
+    if Vault.has_vault(folder):
+        answer = QMessageBox.question(
+            parent, "Use existing vault?",
+            f"{folder}\nalready contains a Cerberus vault.\n\nSwitch to the memories stored there?")
+        if answer != QMessageBox.StandardButton.Yes:
+            return False
+    elif controller.vault.stats()["total"]:
+        answer = QMessageBox.question(
+            parent, "Copy your memories?",
+            "Copy your current memories into the new folder?\n\n"
+            "The originals stay in the old folder; delete them yourself once you're happy.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            | QMessageBox.StandardButton.Cancel)
+        if answer == QMessageBox.StandardButton.Cancel:
+            return False
+        copy = answer == QMessageBox.StandardButton.Yes
+    try:
+        controller.change_storage(folder, copy_existing=copy)
+    except (CaptureError, OSError, ValueError) as exc:
+        QMessageBox.warning(parent, "Couldn't change storage", str(exc))
+        return False
+    return True
+
+
 class SettingsWindow(QWidget):
     """Edits apply immediately; the controller persists them to settings.json."""
 
@@ -281,40 +317,11 @@ class SettingsWindow(QWidget):
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.controller.vault.home)))
 
     def change_storage(self) -> None:
-        folder = QFileDialog.getExistingDirectory(
-            self, "Choose where Cerberus keeps your memories", str(self.controller.vault.home))
-        if folder:
-            self._switch_storage(Path(folder))
+        prompt_storage_change(self.controller, self)
+        self.refresh_storage()
 
     def reset_storage(self) -> None:
-        self._switch_storage(self.controller.home)
-
-    def _switch_storage(self, folder: Path) -> None:
-        folder = folder.resolve()
-        if folder == self.controller.vault.home.resolve():
-            return
-        copy = False
-        if Vault.has_vault(folder):
-            answer = QMessageBox.question(
-                self, "Use existing vault?",
-                f"{folder}\nalready contains a Cerberus vault.\n\nSwitch to the memories stored there?")
-            if answer != QMessageBox.StandardButton.Yes:
-                return
-        elif self.controller.vault.stats()["total"]:
-            answer = QMessageBox.question(
-                self, "Copy your memories?",
-                "Copy your current memories into the new folder?\n\n"
-                "The originals stay in the old folder; delete them yourself once you're happy.",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-                | QMessageBox.StandardButton.Cancel)
-            if answer == QMessageBox.StandardButton.Cancel:
-                return
-            copy = answer == QMessageBox.StandardButton.Yes
-        try:
-            self.controller.change_storage(folder, copy_existing=copy)
-        except (CaptureError, OSError, ValueError) as exc:
-            QMessageBox.warning(self, "Couldn't change storage", str(exc))
-            return
+        prompt_storage_change(self.controller, self, self.controller.home)
         self.refresh_storage()
 
     # ----- shortcut actions ----------------------------------------------

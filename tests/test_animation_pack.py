@@ -44,9 +44,8 @@ class AnimationPackTests(unittest.TestCase):
     def test_rejects_too_many_unique_frames_across_states(self):
         with self.assertRaises(ValueError):
             parse_manifest(manifest(states={
-                "idle": {"frames": [f"idle/{index}.png" for index in range(64)]},
-                "sleep": {"frames": [f"sleep/{index}.png" for index in range(64)]},
-                "wake": {"frames": ["wake.png"]},
+                state: {"frames": [f"{state}/{index}.png" for index in range(64)]}
+                for state in ("idle", "sleep", "wake", "dash", "catch", "carry", "play")
             }))
 
     def test_reads_gif_states_with_loop_from_and_scale(self):
@@ -80,7 +79,9 @@ class AnimationPackTests(unittest.TestCase):
         for state in ("idle", "sleep", "wake", "portal", "dash", "catch", "carry",
                       "celebrate", "play", "alert", "guard", "arrive", "leave"):
             self.assertIn(state, parsed.states)
-            self.assertTrue(root.joinpath(*parsed.states[state].gif.split("/")).is_file())
+            sequence = parsed.states[state]
+            for name in (sequence.gif,) if sequence.gif else sequence.frames:
+                self.assertTrue(root.joinpath(*name.split("/")).is_file(), name)
 
 
 if __name__ == "__main__":

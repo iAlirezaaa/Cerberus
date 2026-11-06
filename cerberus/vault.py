@@ -261,14 +261,18 @@ class Vault:
         item = self.get(item_id)
         if item is None:
             return False
-        with self.db:
-            self.db.execute("DELETE FROM items WHERE id=?", (item_id,))
         stored = item.get("stored_path")
         if stored:
             candidate = Path(stored)
-            # Never remove arbitrary source files or symlinks.
+            # Never remove arbitrary source files or symlinks. Remove the copy first so a
+            # locked file (Windows) leaves the record in place instead of an orphan file.
             if not candidate.is_symlink() and candidate.resolve().is_relative_to(self.files_dir.resolve()):
-                candidate.unlink(missing_ok=True)
+                try:
+                    candidate.unlink(missing_ok=True)
+                except OSError as exc:
+                    raise CaptureError(f"The stored file is in use and was not deleted: {exc}") from exc
+        with self.db:
+            self.db.execute("DELETE FROM items WHERE id=?", (item_id,))
         return True
 
     @staticmethod

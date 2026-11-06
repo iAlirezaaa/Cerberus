@@ -26,17 +26,19 @@ from PySide6.QtGui import (
     QPainterPath, QPen, QPixmap, QPolygonF, QTransform,
 )
 from PySide6.QtSvg import QSvgRenderer
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6.QtWidgets import QApplication, QToolTip, QWidget
 
 from .motion import MotionMachine
 from .quips import QuipBook
 from .animation_pack import (
-    MAX_DIMENSION, MAX_FRAME_BYTES, MAX_FRAMES_PER_STATE, MAX_UNIQUE_FRAMES, parse_manifest,
+    EXTRA_IDLE, MAX_DIMENSION, MAX_FRAME_BYTES, MAX_FRAMES_PER_STATE, MAX_UNIQUE_FRAMES,
+    parse_manifest,
 )
 
 BASE_WIDTH = 340
 BASE_HEIGHT = 380
-MAX_PACK_PIXELS = 32_000_000
+# Budget for decoded source frames (before cropping, ~4 bytes each).
+MAX_PACK_PIXELS = 96_000_000
 MAX_RENDER_DIMENSION = 768
 # GIF clips stand on this line (base coordinates) and are drawn at a fixed
 # source-pixel scale so every clip keeps the same character size.
@@ -55,6 +57,32 @@ CHAT_INTERVALS = {"off": None, "quiet": (150.0, 320.0), "normal": (55.0, 140.0),
 ROAM_INTERVAL = (16.0, 50.0)
 # Hover button that sends Cerberus away (base coordinates).
 DISMISS_RECT = QRectF(296, 86, 32, 32)
+# Hover button that minimizes Cerberus into a small bubble.
+MINIMIZE_RECT = QRectF(258, 86, 32, 32)
+# Phases in which a one-off clip (petted, sad, talk, yawn…) may play over the base clip.
+OVERRIDE_PHASES = ("idle", "play", "alert", "walk", "wake")
+
+
+def parse_drop(mime) -> list[tuple[str, object]]:
+    """Turn dropped data into capture requests: ("files", [...]), ("text", str), ("image", png)."""
+    requests: list[tuple[str, object]] = []
+    if mime.hasUrls():
+        files = [u.toLocalFile() for u in mime.urls() if u.isLocalFile()]
+        links = [u.toString() for u in mime.urls() if not u.isLocalFile()]
+        if files:
+            requests.append(("files", files))
+        requests.extend(("text", link) for link in links)
+    elif mime.hasText():
+        requests.append(("text", mime.text()))
+    elif mime.hasImage():
+        png = mime_image_png(mime)
+        if png is not None:
+            requests.append(("image", png))
+    return requests
+
+
+def accepts_drop(mime) -> bool:
+    return bool(mime.hasUrls() or mime.hasText() or mime.hasImage())
 
 
 def mime_image_png(mime) -> bytes | None:
@@ -167,9 +195,15 @@ def _load_gif(data: bytes, name: str) -> _Gif:
         raise ValueError(f"Could not decode animation GIF: {name}")
     if not images[0].hasAlphaChannel() or images[0].pixelColor(0, 0).alpha() != 0:
         raise ValueError(f"Animation GIF must have a transparent background: {name}")
+    frames, offset, pixels = _crop_shared(images, name)
+    return _Gif(frames, tuple(delays), offset, pixels)
+
+
+def _crop_shared(images: list[QImage], name: str) -> tuple[tuple[QPixmap, ...], tuple[int, int], int]:
+    """Crop every frame to the union of their visible boxes (keeps frames aligned)."""
     boxes = [box for box in (_alpha_bounds(image) for image in images) if box]
     if not boxes:
-        raise ValueError(f"Animation GIF is fully transparent: {name}")
+        raise ValueError(f"Animation clip is fully transparent: {name}")
     pad = 2
     left = max(0, min(b[0] for b in boxes) - pad)
     top = max(0, min(b[1] for b in boxes) - pad)
@@ -179,8 +213,7 @@ def _load_gif(data: bytes, name: str) -> _Gif:
         QPixmap.fromImage(image.copy(left, top, right - left, bottom - top))
         for image in images
     )
-    return _Gif(frames, tuple(delays), (left, top),
-                sum(image.width() * image.height() for image in images))
+    return frames, (left, top), (right - left) * (bottom - top) * len(images)
 
 
 @dataclass(frozen=True)
@@ -306,14 +339,31 @@ def _load_animation_pack() -> tuple[_Clip, dict[str, _Clip], str]:
                     raise ValueError(f"All frames in {state} must use the same canvas")
                 delays = (1 / sequence.fps,) * len(frames)
                 props = ()
-                anchored = False
+                anchored = sequence.anchored
+                if anchored:
+                    # Soft-alpha PNG clips are cropped and grounded exactly like GIFs.
+                    images = [frame.toImage().convertToFormat(QImage.Format.Format_ARGB32)
+                              for frame in frames]
+                    frames, (left, top), _ = _crop_shared(images, state)
+                    props = tuple(
+                        None if box is None else QRectF(box[0] - left, box[1] - top,
+                                                        box[2] - box[0], box[3] - box[1])
+                        for box in sequence.props
+                    )
             if sequence.loop_from >= len(frames):
                 raise ValueError(f"{state} loop_from is past the last frame")
             if sequence.reverse:
                 frames, delays, props = frames[::-1], delays[::-1], props[::-1]
             clips[state] = _Clip(frames, delays, sequence.loop, sequence.loop_from,
                                  sequence.scale, anchored, props)
-        if manifest.default.lower().endswith(".gif"):
+        idle = clips.get("idle")
+        if idle is not None and idle.anchored and manifest.default.lower().endswith(".png") \
+                and manifest.default in (states_first := {
+                    state: seq.frames[0] for state, seq in manifest.states.items() if seq.frames
+                }).values():
+            # Default pose = the idle clip's own cropped first frame (tray icon, bubble face).
+            default = _Clip(idle.frames[:1], idle.delays[:1], scale=idle.scale, anchored=True)
+        elif manifest.default.lower().endswith(".gif"):
             gif = load_gif(manifest.default)
             scale = next((clip.scale for clip in clips.values()
                           if clip.frames[0] is gif.frames[0]), 1.0)
@@ -359,6 +409,7 @@ class CerberusPet(QWidget):
     vault_requested = Signal()
     menu_requested = Signal(QPoint)
     dismiss_requested = Signal()
+    minimize_requested = Signal()
     went_away = Signal(int, int)  # side (-1 left, 1 right), last y position
     came_back = Signal()
 
@@ -391,6 +442,19 @@ class CerberusPet(QWidget):
         self.quips = QuipBook(language)
         self._default_clip, self._state_frames, self._sprite_source = _load_animation_pack()
         self._sprite = self._default_clip.frames[0]
+        # Transient phases last exactly one pass of the clip that was loaded for them.
+        for phase in list(self.motion.durations):
+            clip = self._state_frames.get(phase)
+            if clip is not None and clip.anchored and not clip.loop:
+                self.motion.set_duration(phase, clip.total)
+        stash = self._state_frames.get("stash_item")
+        if stash is not None:
+            self.motion.set_duration("celebrate", stash.total)
+        self._override: str | None = None
+        self._override_started = 0.0
+        self._override_until = 0.0
+        self._override_mirror: bool | None = None
+        self._frozen = False
         self._mirrored: dict[int, QPixmap] = {}
         self._size = BASE_WIDTH
         self.setFixedSize(BASE_WIDTH, BASE_HEIGHT)
@@ -515,7 +579,39 @@ class CerberusPet(QWidget):
             return
         line = self.quips.pick(event, **values)
         if line:
-            self.tell(line, seconds=min(6.0, 2.2 + len(line) / 18), style=style)
+            seconds = min(6.0, 2.2 + len(line) / 18)
+            self.tell(line, seconds=seconds, style=style)
+            # Mouth moves while talking / paw-on-chin while thinking, when those clips exist
+            # (only while sitting idle, so a stroll or a capture is never interrupted).
+            if self._phase == "idle":
+                self.play_clip("think" if style == "think" else "talk", seconds=seconds)
+
+    def play_clip(self, name: str, *, seconds: float | None = None, loops: int = 1,
+                  mirror: bool | None = None) -> bool:
+        """Play an optional one-off clip over the current phase (if the pack has it)."""
+        clip = self._state_frames.get(name)
+        if clip is None or self.reduced_motion or self._phase not in OVERRIDE_PHASES:
+            return False
+        now = time.monotonic()
+        self._override = name
+        self._override_started = now
+        self._override_until = now + (seconds if seconds is not None else clip.total * loops)
+        self._override_mirror = mirror
+        return True
+
+    def _active_override(self, now: float) -> str | None:
+        if self._override is None:
+            return None
+        if now >= self._override_until or self._phase not in OVERRIDE_PHASES:
+            self._override = None
+            self._override_mirror = None
+            return None
+        return self._override
+
+    def sad(self) -> None:
+        """Capture failed: droop (when the clip exists) and say so."""
+        self.play_clip("sad")
+        self.say("error", force=True)
 
     def greet(self) -> None:
         if self.chat_level != "off":
@@ -548,9 +644,15 @@ class CerberusPet(QWidget):
         self._wake_up()
         self._tick()
 
-    def arrive(self, message: str = "") -> None:
-        """Come back through the Hades portal at the mouse cursor."""
-        self._move_to_cursor()
+    def arrive(self, message: str = "", *, at: QPoint | None = None) -> None:
+        """Come back through the Hades portal at the cursor (or with feet at ``at``)."""
+        self._frozen = False
+        if at is None:
+            self._move_to_cursor()
+        else:
+            feet = GROUND_Y * self.height() / BASE_HEIGHT
+            self.move(self._on_screen(at.x() - self.width() // 2, round(at.y() - feet)))
+        # An active transition: restoring must not make it run off straight away.
         self.motion.arrive()
         if message:
             self.tell(message, seconds=2.4)
@@ -558,9 +660,39 @@ class CerberusPet(QWidget):
         self._wake_up()
         self._tick()
 
+    def feet_position(self) -> QPoint:
+        """Global point between Cerberus's feet (where a minimized bubble should sit)."""
+        return self.mapToGlobal(QPoint(self.width() // 2,
+                                       round(GROUND_Y * self.height() / BASE_HEIGHT)))
+
+    def freeze(self) -> None:
+        """Minimized: hide and stop every timer so it costs no CPU."""
+        self._frozen = True
+        self._timer.stop()
+        self._particles.clear()
+        self._override = None
+        if self.is_away:
+            self.motion.transition("idle")
+        self.hide()
+
+    @property
+    def is_frozen(self) -> bool:
+        return self._frozen
+
+    def vanish(self, then) -> None:
+        """Hop into a portal (when that clip exists), then call ``then``."""
+        clip = self._state_frames.get("portal_exit")
+        if clip is None or self.reduced_motion or not self.isVisible():
+            then()
+            return
+        self.motion.transition("idle")
+        self.play_clip("portal_exit")
+        self._tick()
+        QTimer.singleShot(int(clip.total * 1000), then)
+
     def dismiss(self) -> None:
         """Send Cerberus away on purpose: it says goodbye and runs off-screen."""
-        if self.is_away:
+        if self.is_away or self._frozen:
             return
         self.say("dismiss", force=True)
         self.motion.dismiss()
@@ -585,7 +717,13 @@ class CerberusPet(QWidget):
 
     # ----- behaviour -----------------------------------------------------
     def _pick_idle_variant(self, now: float) -> None:
-        options = [(name, weight) for name, weight in IDLE_WEIGHTS.items()
+        weights = dict(IDLE_WEIGHTS)
+        for extra in EXTRA_IDLE:
+            weights[extra] = 1
+        hour = time.localtime().tm_hour
+        if hour >= 20 or hour < 5:
+            weights["howl"] = 1  # only at night
+        options = [(name, weight) for name, weight in weights.items()
                    if name == "idle" or name in self._state_frames]
         if self.reduced_motion or self._variant is None:
             choice = "idle"
@@ -599,7 +737,12 @@ class CerberusPet(QWidget):
         clip = self._state_frames.get(choice)
         length = clip.total if clip is not None else 2.0
         if loops is None:
-            loops = random.randint(2, 4) if choice == "idle" else (1 if choice == "bark" else 2)
+            if choice == "idle":
+                loops = random.randint(2, 4)
+            elif choice in ("bark", "howl", *EXTRA_IDLE) and choice != "chase_tail":
+                loops = 1
+            else:
+                loops = 2
         self._variant = choice
         self._variant_started = now
         self._variant_until = now + max(1.5, length * loops)
@@ -624,12 +767,16 @@ class CerberusPet(QWidget):
         self._walk_visual = "leave" if zoomies else "walk"
         self._facing = 1 if target > self.x() else -1
         self.motion.transition("walk", now=now)
+        # Get up before moving off (when the bridge clip exists).
+        self._walk_hold_until = now
+        if self.play_clip("sit_to_run"):
+            self._walk_hold_until = self._override_until
         if not zoomies:
             self.say("walk", chance=0.25)
         return True
 
     def _walk_step(self, now: float, dt: float) -> None:
-        if self._drag_offset is not None:
+        if self._drag_offset is not None or now < getattr(self, "_walk_hold_until", 0.0):
             return
         step = self._facing * self._walk_speed * dt * self.width() / BASE_WIDTH
         self._walk_x += step
@@ -640,6 +787,7 @@ class CerberusPet(QWidget):
         self.move(round(self._walk_x), self.y())
         if done:
             self.motion.settle(now=now)
+            self.play_clip("run_to_sit")
             self._next_roam_at = now + random.uniform(*ROAM_INTERVAL)
 
     def _leave_step(self, now: float, dt: float) -> None:
@@ -677,7 +825,11 @@ class CerberusPet(QWidget):
         centre = self.geometry().center()
         dx = cursor.x() - centre.x()
         if abs(dx) > self.width() * 0.55 and abs(cursor.y() - centre.y()) < 1200:
-            self._facing = 1 if dx > 0 else -1
+            facing = 1 if dx > 0 else -1
+            if facing != self._facing and self._override is None:
+                # The turn clip goes right -> left; mirrored it goes left -> right.
+                self.play_clip("turn_around", mirror=facing > 0)
+            self._facing = facing
 
     def _on_phase_change(self, old: str, new: str, now: float) -> None:
         if new == "sleep":
@@ -733,6 +885,9 @@ class CerberusPet(QWidget):
             del self._particles[:-60]
 
     def _tick(self) -> None:
+        if self._frozen:
+            self._timer.stop()
+            return
         now = time.monotonic()
         dt = min(0.1, max(0.0, now - self._last_tick))
         self.motion.update(now=now)
@@ -797,6 +952,7 @@ class CerberusPet(QWidget):
             event.acceptProposedAction()
             self.motion.transition("alert")
             self.say("drag_over", force=True)
+            self.play_clip("sniff", seconds=self.motion.durations["alert"][0])
             self._spawn_burst("bang", 1, 170 + self._facing * 40, 110, spread=1)
             self._wake_up()
             self._tick()
@@ -807,26 +963,10 @@ class CerberusPet(QWidget):
             event.acceptProposedAction()
 
     def dropEvent(self, event) -> None:
-        mime = event.mimeData()
-        captured = False
-        if mime.hasUrls():
-            files = [u.toLocalFile() for u in mime.urls() if u.isLocalFile()]
-            links = [u.toString() for u in mime.urls() if not u.isLocalFile()]
-            if files:
-                self.capture_requested.emit("files", files)
-                captured = True
-            for link in links:
-                self.capture_requested.emit("text", link)
-                captured = True
-        elif mime.hasText():
-            self.capture_requested.emit("text", mime.text())
-            captured = True
-        elif mime.hasImage():
-            png = mime_image_png(mime)
-            if png is not None:
-                self.capture_requested.emit("image", png)
-                captured = True
-        if captured:
+        requests = parse_drop(event.mimeData())
+        for kind, value in requests:
+            self.capture_requested.emit(kind, value)
+        if requests:
             event.acceptProposedAction()
 
     def enterEvent(self, event) -> None:
@@ -844,13 +984,16 @@ class CerberusPet(QWidget):
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
-            if self._dismiss_visible() and DISMISS_RECT.adjusted(-4, -4, 4, 4).contains(
-                    self._base_point(event.position())):
-                self._press_position = None
-                self._drag_offset = None
-                self.dismiss_requested.emit()
-                event.accept()
-                return
+            point = self._base_point(event.position())
+            if self._dismiss_visible():
+                for rect, signal in ((DISMISS_RECT, self.dismiss_requested),
+                                     (MINIMIZE_RECT, self.minimize_requested)):
+                    if rect.adjusted(-4, -4, 4, 4).contains(point):
+                        self._press_position = None
+                        self._drag_offset = None
+                        signal.emit()
+                        event.accept()
+                        return
             if self._phase == "walk":
                 self.motion.settle()
             self._press_position = event.globalPosition().toPoint()
@@ -864,6 +1007,7 @@ class CerberusPet(QWidget):
             if self._press_position is not None and (point - self._press_position).manhattanLength() >= 6:
                 if not self._dragged:
                     self.say("dragged", chance=0.5)
+                    self.play_clip("held", seconds=3600)  # until released
                 self._dragged = True
             if self._dragged:
                 desired = point - self._drag_offset
@@ -877,13 +1021,17 @@ class CerberusPet(QWidget):
             if not self._dragged:
                 self.motion.touch()
                 if self._phase == "play":
-                    self._play_visual = random.choice(["play", "happy"])
+                    choices = [name for name in ("play", "happy", "petted", "celebrate_jump")
+                               if name in self._state_frames] or ["play"]
+                    self._play_visual = random.choice(choices)
                     self._spawn_hearts()
                     self.say("pet", force=True)
                 self._tick()
             else:
                 # Being carried around counts as attention too.
                 self.motion.last_active_at = time.monotonic()
+                if self._override == "held":
+                    self._override = None
         self._drag_offset = None
         self._press_position = None
         self._dragged = False
@@ -899,6 +1047,11 @@ class CerberusPet(QWidget):
     # ----- painting ------------------------------------------------------
     def _visual_state(self, state: str) -> str:
         """Machine phase, or the clip currently standing in for it."""
+        override = self._active_override(time.monotonic())
+        if override is not None:
+            return override
+        if state == "celebrate" and "stash_item" in self._state_frames:
+            return "stash_item"
         if state == "idle" and self._variant in self._state_frames:
             return self._variant
         if state == "play" and self._play_visual in self._state_frames:
@@ -928,13 +1081,15 @@ class CerberusPet(QWidget):
 
         if clip.anchored:
             # Authored GIF clips carry their own motion: no procedural transforms.
-            if state not in ("portal", "arrive", "sleep"):
+            if state not in ("portal", "arrive", "sleep") and visual != "portal_exit":
                 painter.setPen(Qt.PenStyle.NoPen)
                 painter.setBrush(QColor(8, 16, 22, 31))
                 painter.drawEllipse(QRectF(90, GROUND_Y - 9, 170, 12))
             index = self._frame_index(visual, now)
             sprite = clip.rest if self.reduced_motion else clip.frames[index]
             mirrored = self._facing < 0
+            if visual == self._override and self._override_mirror is not None:
+                mirrored = self._override_mirror
             if mirrored:
                 sprite = self._mirror(sprite)
             target = self._target_rect(clip, sprite)
@@ -944,16 +1099,17 @@ class CerberusPet(QWidget):
                 self._fade_from = self._last_paint
                 self._fade_started = now
             self._last_paint_key = key
+            # New pose solid underneath, old pose fading out on top: the body never turns
+            # see-through, and switching clips blends instead of popping.
+            painter.drawPixmap(target, sprite, QRectF(sprite.rect()))
             fade = (now - self._fade_started) / FADE_SECONDS if self._fade_from else 1.0
             if fade < 1.0 and self._fade_from is not None:
                 old_sprite, old_rect = self._fade_from
-                painter.setOpacity(1.0 - fade)
+                painter.setOpacity((1.0 - fade) ** 1.5)
                 painter.drawPixmap(old_rect, old_sprite, QRectF(old_sprite.rect()))
-                painter.setOpacity(min(1.0, 0.35 + fade))
+                painter.setOpacity(1.0)
             else:
                 self._fade_from = None
-            painter.drawPixmap(target, sprite, QRectF(sprite.rect()))
-            painter.setOpacity(1.0)
             self._last_paint = (sprite, target)
             if self._carry is not None and clip.props and not self.reduced_motion:
                 box = clip.props[min(index, len(clip.props) - 1)]
@@ -1107,6 +1263,15 @@ class CerberusPet(QWidget):
         painter.drawLine(QPointF(c.x() - 6, c.y() + 6), QPointF(c.x() + 6, c.y() - 6))
         painter.drawLine(QPointF(c.x() + 6, c.y() - 6), QPointF(c.x() - 1, c.y() - 6))
         painter.drawLine(QPointF(c.x() + 6, c.y() - 6), QPointF(c.x() + 6, c.y() + 1))
+        # Minimize button: a short bar.
+        rect = MINIMIZE_RECT
+        painter.setPen(QPen(QColor("#ee703c"), 2))
+        painter.setBrush(QColor(28, 18, 20, 225))
+        painter.drawEllipse(rect)
+        painter.setPen(QPen(QColor("#ffd29a"), 2.6, Qt.PenStyle.SolidLine,
+                            Qt.PenCapStyle.RoundCap))
+        m = rect.center()
+        painter.drawLine(QPointF(m.x() - 7, m.y() + 3), QPointF(m.x() + 7, m.y() + 3))
         painter.restore()
 
     def _paint_legacy(self, painter: QPainter, state: str, visual: str,
@@ -1194,7 +1359,12 @@ class CerberusPet(QWidget):
         clip = self._state_frames.get(state)
         if clip is None:
             return 0
-        started = self._variant_started if state == self._variant else self.motion.entered_at
+        if state == self._override:
+            started = self._override_started
+        elif state == self._variant:
+            started = self._variant_started
+        else:
+            started = self.motion.entered_at
         return clip.index_at(now - started)
 
     def _frame_for_state(self, state: str, now: float) -> QPixmap:
@@ -1207,12 +1377,21 @@ class CerberusPet(QWidget):
         return clip.frames[self._frame_index(state, now)]
 
 
-class ReturnButton(QWidget):
-    """Little portal docked at the screen edge while Cerberus is away. Click to call it back."""
+class MiniBubble(QWidget):
+    """Small round Cerberus bubble: the minimized mode, and the dock while it is away.
+
+    Click to bring Cerberus back, drag to move, drop things on it to save them without
+    restoring, right-click for the menu. It is a still image unless hovered or
+    flashing, so it costs no CPU while it waits.
+    """
 
     clicked = Signal()
+    dropped = Signal(str, object)
+    moved = Signal(QPoint)
+    menu_requested = Signal(QPoint)
 
-    def __init__(self, face: QPixmap | None = None) -> None:
+    def __init__(self, face: QPixmap | None = None, curl: _Clip | None = None,
+                 size: int = 72, reduced_motion: bool = False) -> None:
         super().__init__()
         self.setWindowFlags(
             Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint
@@ -1220,16 +1399,25 @@ class ReturnButton(QWidget):
         )
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
         self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating, True)
-        self.setFixedSize(64, 64)
+        self.setAcceptDrops(True)
+        self.setFixedSize(size, size)
         self.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.setToolTip("Cerberus is away — click to call it back (drag to move)")
+        self.setToolTip("Cerberus — click to bring back, drop things here to save them, "
+                        "drag to move, right-click for the menu")
+        self.reduced_motion = reduced_motion
+        self._curl = curl
         self._face = None
         if face is not None and not face.isNull():
             # Use the top part of the sprite: the three heads.
             head = face.copy(0, 0, face.width(), int(face.height() * .55))
-            self._face = head.scaled(44, 44, Qt.AspectRatioMode.KeepAspectRatio,
+            inner = int(size * .7)
+            self._face = head.scaled(inner, inner, Qt.AspectRatioMode.KeepAspectRatio,
                                      Qt.TransformationMode.SmoothTransformation)
         self._phase = 0.0
+        self._started = time.monotonic()
+        self._hover = False
+        self._drop_hover = False
+        self._flash_until = 0.0
         self._press: QPoint | None = None
         self._origin = QPoint()
         self._moved = False
@@ -1237,7 +1425,9 @@ class ReturnButton(QWidget):
         self._timer.setInterval(120)
         self._timer.timeout.connect(self._spin)
 
+    # ----- placement -------------------------------------------------------
     def show_at(self, side: int, bottom_y: int, screen=None) -> None:
+        """Dock at the left/right screen edge (used while Cerberus is away)."""
         screen = screen or QApplication.primaryScreen()
         if screen is None:
             return
@@ -1245,32 +1435,121 @@ class ReturnButton(QWidget):
         x = area.right() - self.width() - 6 if side > 0 else area.left() + 6
         y = max(area.top(), min(bottom_y - self.height() - 10, area.bottom() - self.height() - 6))
         self.move(x, y)
-        self._timer.start()
+        self._show()
+
+    def show_centered(self, point: QPoint) -> None:
+        """Sit with its bottom-centre at ``point`` (e.g. where Cerberus's feet were)."""
+        target = QPoint(point.x() - self.width() // 2, point.y() - self.height())
+        self.move(self._clamp(target))
+        self._show()
+
+    def _clamp(self, top_left: QPoint) -> QPoint:
+        centre = top_left + QPoint(self.width() // 2, self.height() // 2)
+        screen = QApplication.screenAt(centre) or QApplication.primaryScreen()
+        if screen is None:
+            return top_left
+        area = screen.availableGeometry()
+        return QPoint(max(area.left(), min(top_left.x(), area.right() - self.width() + 1)),
+                      max(area.top(), min(top_left.y(), area.bottom() - self.height() + 1)))
+
+    def _show(self) -> None:
         self.show()
         self.raise_()
+        self._update_timer()
 
     def hide(self) -> None:  # noqa: D401 - Qt override
         self._timer.stop()
         super().hide()
 
+    def flash(self, message: str = "") -> None:
+        """Brief celebration after something was saved while minimized."""
+        self._flash_until = time.monotonic() + 1.6
+        self._update_timer()
+        if message and self.isVisible():
+            QToolTip.showText(self.mapToGlobal(QPoint(self.width() // 2, 0)), message, self)
+
+    # ----- animation -------------------------------------------------------
+    def _animating(self) -> bool:
+        return not self.reduced_motion and (
+            self._hover or self._drop_hover or time.monotonic() < self._flash_until)
+
+    def _update_timer(self) -> None:
+        if self._animating() and self.isVisible():
+            if not self._timer.isActive():
+                self._timer.start()
+        else:
+            self._timer.stop()
+        self.update()
+
     def _spin(self) -> None:
-        self._phase = (self._phase + 0.12) % math.tau
+        self._phase = (self._phase + 0.18) % math.tau
+        if not self._animating():
+            self._timer.stop()
         self.update()
 
     def paintEvent(self, event) -> None:
         p = QPainter(self)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
-        rect = QRectF(4, 4, 56, 56)
-        glow = 0.75 + 0.25 * math.sin(self._phase * 2)
-        p.setPen(QPen(QColor(238, 112, 60, int(255 * glow)), 4))
+        p.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+        size = self.width()
+        rect = QRectF(4, 4, size - 8, size - 8)
+        active = self._animating()
+        glow = 0.75 + 0.25 * math.sin(self._phase * 2) if active else 0.85
+        ring = QColor(255, 200, 90) if self._drop_hover else QColor(238, 112, 60)
+        ring.setAlpha(int(255 * glow))
+        p.setPen(QPen(ring, 4))
         p.setBrush(QColor(36, 20, 20, 230))
         p.drawEllipse(rect)
         p.setPen(QPen(QColor("#ffbf6b"), 1.6))
         p.drawArc(rect.adjusted(5, 5, -5, -5), int(math.degrees(self._phase) * 16), 200 * 16)
-        if self._face is not None:
-            p.drawPixmap(int(32 - self._face.width() / 2), int(34 - self._face.height() / 2),
-                         self._face)
+        if self._curl is not None:
+            clip = self._curl
+            index = clip.index_at(time.monotonic() - self._started) if active else 0
+            frame = clip.frames[index]
+            box = rect.adjusted(6, 6, -6, -6)
+            ratio = min(box.width() / frame.width(), box.height() / frame.height())
+            w, h = frame.width() * ratio, frame.height() * ratio
+            p.drawPixmap(QRectF(box.center().x() - w / 2, box.center().y() - h / 2, w, h),
+                         frame, QRectF(frame.rect()))
+        elif self._face is not None:
+            bob = 2 * math.sin(self._phase * 2) if active else 0
+            p.drawPixmap(int(size / 2 - self._face.width() / 2),
+                         int(size / 2 + 2 - self._face.height() / 2 + bob), self._face)
         p.end()
+
+    # ----- input -----------------------------------------------------------
+    def enterEvent(self, event) -> None:
+        self._hover = True
+        self._update_timer()
+        super().enterEvent(event)
+
+    def leaveEvent(self, event) -> None:
+        self._hover = False
+        self._update_timer()
+        super().leaveEvent(event)
+
+    def dragEnterEvent(self, event) -> None:
+        if accepts_drop(event.mimeData()):
+            event.acceptProposedAction()
+            self._drop_hover = True
+            self._update_timer()
+
+    def dragMoveEvent(self, event) -> None:
+        if accepts_drop(event.mimeData()):
+            event.acceptProposedAction()
+
+    def dragLeaveEvent(self, event) -> None:
+        self._drop_hover = False
+        self._update_timer()
+
+    def dropEvent(self, event) -> None:
+        self._drop_hover = False
+        requests = parse_drop(event.mimeData())
+        for kind, value in requests:
+            self.dropped.emit(kind, value)
+        if requests:
+            event.acceptProposedAction()
+        self._update_timer()
 
     def mousePressEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton:
@@ -1284,10 +1563,19 @@ class ReturnButton(QWidget):
             if delta.manhattanLength() > 5:
                 self._moved = True
             if self._moved:
-                self.move(self._origin + delta)
+                self.move(self._clamp(self._origin + delta))
 
     def mouseReleaseEvent(self, event) -> None:
         if event.button() == Qt.MouseButton.LeftButton and self._press is not None:
-            if not self._moved:
+            if self._moved:
+                self.moved.emit(self.pos())
+            else:
                 self.clicked.emit()
         self._press = None
+
+    def contextMenuEvent(self, event) -> None:
+        self.menu_requested.emit(event.globalPos())
+
+
+# Older name kept for callers and tests.
+ReturnButton = MiniBubble

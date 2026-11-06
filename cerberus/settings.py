@@ -46,6 +46,10 @@ class Settings:
     language: str = "auto"
     # Empty = keep memories next to settings.json in data_dir().
     storage_dir: str = ""
+    # Minimized bubble: whether it is minimized and where the bubble was left (-1 = unset).
+    minimized: bool = False
+    bubble_x: int = -1
+    bubble_y: int = -1
 
     @classmethod
     def load(cls, home: Path | None = None) -> "Settings":
@@ -61,7 +65,8 @@ class Settings:
             if item.type == "bool" and type(raw.get(item.name)) is bool:
                 values[item.name] = raw[item.name]
         ranges = {"pet_size": (180, 500), "standby_seconds": (15, 3600),
-                  "away_seconds": (30, 7200)}
+                  "away_seconds": (30, 7200), "bubble_x": (-32768, 32767),
+                  "bubble_y": (-32768, 32767)}
         for key, (low, high) in ranges.items():
             if type(raw.get(key)) is int and low <= raw[key] <= high:
                 values[key] = raw[key]
