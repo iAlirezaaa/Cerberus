@@ -74,14 +74,15 @@ class AnimationPackTests(unittest.TestCase):
 
     def test_bundled_pack_is_valid_and_complete(self):
         from importlib import resources
-        root = resources.files("cerberus").joinpath("assets")
-        parsed = parse_manifest(root.joinpath("animation-pack.json").read_bytes())
-        for state in ("idle", "sleep", "wake", "portal", "dash", "catch", "carry",
-                      "celebrate", "play", "alert", "guard", "arrive", "leave"):
-            self.assertIn(state, parsed.states)
-            sequence = parsed.states[state]
-            for name in (sequence.gif,) if sequence.gif else sequence.frames:
-                self.assertTrue(root.joinpath(*name.split("/")).is_file(), name)
+        for character in ('ghost', 'hades', 'charon', 'cerberus'):
+            root = resources.files('cerberus').joinpath('assets', 'characters', character)
+            parsed = parse_manifest(root.joinpath('animation-pack.json').read_bytes())
+            for state in ('idle', 'play', 'sleep', 'guard'):
+                self.assertIn(state, parsed.states)
+                sequence = parsed.states[state]
+                for name in (sequence.gif,) if sequence.gif else sequence.frames:
+                    self.assertTrue(root.joinpath(*name.split('/')).is_file(), name)
+
 
 
 if __name__ == "__main__":

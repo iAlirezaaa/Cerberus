@@ -1,3 +1,5 @@
+> Current character update (2026-11-14): the four supplied identities replace all previous mascot art. Bundled packs now live in `cerberus/assets/characters/{ghost,hades,charon,cerberus}/animation-pack.json`. Choose Character in the tray menu. Each pack provides a transparent idle/play GIF and still rest/guard pose; remaining capture/movement phases use procedural motion with the selected identity. Older asset paths and artwork descriptions below are historical and are superseded by this update. Item icons and vault data are preserved.
+
 # Cerberus architecture
 
 ## Goal

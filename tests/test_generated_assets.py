@@ -1,46 +1,28 @@
-"""Check all user-created animation files are included, without GUI imports."""
-from __future__ import annotations
-
+"""Validate the replacement source assets shipped with the app."""
+from pathlib import Path
+import unittest
 import json
 import struct
-import unittest
-from pathlib import Path
-
-from cerberus.animation_pack import parse_manifest
-
-
-ROOT = Path(__file__).resolve().parents[1]
-ART = ROOT / "assets" / "animations"
-
-
+ROOT = Path(__file__).resolve().parents[1] / 'cerberus/assets/characters'
 class GeneratedAssetTests(unittest.TestCase):
-    def test_sequences_and_manifest(self):
-        data = (ART / "animation-pack.json").read_bytes()
-        manifest = parse_manifest(data)
-        self.assertEqual(len(manifest.states["portal"].frames), 8)
-        self.assertFalse(manifest.states["portal"].loop)
-        self.assertEqual(len(manifest.states["idle"].frames), 8)
-        self.assertTrue(manifest.states["idle"].loop)
-        for frame in set([manifest.default] + list(manifest.states["portal"].frames) + list(manifest.states["idle"].frames)):
-            path = ART / frame
-            self.assertTrue(path.is_file(), frame)
-            raw = path.read_bytes()[:26]
-            self.assertTrue(raw.startswith(b"\x89PNG\r\n\x1a\n"), frame)
-            self.assertEqual(raw[25], 6, "Frame must have an RGBA alpha channel")
-
-    def test_gifs_and_concepts_are_present(self):
-        for name in ("cerberus_portal_enter.gif", "cerberus_bored_lookaround.gif"):
-            data = (ART / name).read_bytes()
-            self.assertTrue(data.startswith(b"GIF89a"), name)
-        concepts = list((ROOT / "assets" / "concepts").glob("concept_*.png"))
-        self.assertEqual(len(concepts), 5)
-
-    def test_sheet_dimensions(self):
-        for name in ("portal_sheet.png", "bored_sheet.png"):
-            raw = (ART / "sheets" / name).read_bytes()[:26]
-            self.assertEqual(raw[:8], b"\x89PNG\r\n\x1a\n")
-            self.assertEqual(struct.unpack(">II", raw[16:24]), (2172, 724))
-
-
-if __name__ == "__main__":
-    unittest.main()
+    def test_exact_four_characters_and_sources(self):
+        self.assertEqual({p.name for p in ROOT.iterdir() if p.is_dir()}, {'ghost','hades','charon','cerberus'})
+        for root in ROOT.iterdir():
+            if not root.is_dir(): continue
+            manifest=json.loads((root/'animation-pack.json').read_text())
+            self.assertEqual(manifest['states']['idle']['gif'], 'performance.gif')
+            self.assertTrue(manifest['states']['idle']['loop'])
+            raw=(root/'performance.gif').read_bytes()
+            self.assertEqual(raw[:6],b'GIF89a')
+            self.assertEqual(struct.unpack('<HH',raw[6:10]),(384,512))
+            frames=sorted(root.glob('[0-9][0-9].png'))
+            self.assertEqual(len(frames),16)
+            self.assertGreater(len({p.read_bytes() for p in frames}),8)
+            for p in frames:
+                raw=p.read_bytes()
+                self.assertEqual(raw[:8],b'\x89PNG\r\n\x1a\n')
+                self.assertEqual(raw[25],6)
+    def test_no_previous_mascot_assets(self):
+        assets=ROOT.parent
+        for name in ('guardian.svg','guardian-ember.png','animation-pack.json','clips','gifs','behaviors'):
+            self.assertFalse((assets/name).exists(), name)

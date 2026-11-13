@@ -12,8 +12,7 @@ from pathlib import Path
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 ROOT = Path(__file__).resolve().parents[1]
-ANIMATIONS = ROOT / "assets" / "animations"
-CONCEPTS = ROOT / "assets" / "concepts"
+CHARACTERS = ROOT / "cerberus/assets/characters"
 GOOD_SUFFIXES = {".png", ".gif", ".json", ".md"}
 MAX_FILE_BYTES = 32 * 1024 * 1024
 MAX_TOTAL_BYTES = 200 * 1024 * 1024
@@ -21,7 +20,7 @@ MAX_TOTAL_BYTES = 200 * 1024 * 1024
 
 def source_files() -> list[Path]:
     files: list[Path] = []
-    for folder in (ANIMATIONS, CONCEPTS):
+    for folder in (CHARACTERS,):
         if not folder.is_dir():
             raise FileNotFoundError(f"Missing asset directory: {folder}")
         for file in folder.rglob("*"):
@@ -36,13 +35,10 @@ def source_files() -> list[Path]:
         file = ROOT / name
         if file.exists():
             files.append(file)
-    if not (ANIMATIONS / "cerberus_portal_enter.gif").exists():
-        raise FileNotFoundError("Missing portal entrance GIF")
-    if not (ANIMATIONS / "cerberus_bored_lookaround.gif").exists():
-        raise FileNotFoundError("Missing bored look-around GIF")
-    png_frames = [x for x in files if x.suffix.lower() == ".png" and "/frames/" in x.relative_to(ROOT).as_posix()]
-    if len(png_frames) != 16:
-        raise ValueError(f"Expected 16 animation PNG frames, got {len(png_frames)}")
+    for name in ('ghost', 'hades', 'charon', 'cerberus'):
+        for asset in ('performance.gif', 'animation-pack.json', '00.png'):
+            if not (CHARACTERS / name / asset).is_file():
+                raise FileNotFoundError(f'Missing {name}/{asset}')
     total = sum(file.stat().st_size for file in files)
     if total > MAX_TOTAL_BYTES:
         raise ValueError(f"Total archive input exceeds {MAX_TOTAL_BYTES} bytes")
