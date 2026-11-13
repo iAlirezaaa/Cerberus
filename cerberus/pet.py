@@ -103,17 +103,11 @@ def mime_image_png(mime) -> bytes | None:
 
 
 def _sprite_pixmap() -> QPixmap:
-    """Rasterize the high-resolution transparent vector only once."""
-    raw = resources.files("cerberus").joinpath("assets/guardian.svg").read_bytes()
-    renderer = QSvgRenderer(QByteArray(raw))
-    if not renderer.isValid():
-        raise RuntimeError("Cerberus's guardian.svg character asset is invalid")
-    pixmap = QPixmap(720, 600)
-    pixmap.fill(Qt.GlobalColor.transparent)
-    with_painter = QPainter(pixmap)
-    with_painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-    renderer.render(with_painter, QRectF(0, 0, 720, 600))
-    with_painter.end()
+    """Use the replacement Cerberus as the fallback for invalid optional packs."""
+    raw = resources.files("cerberus").joinpath("assets/characters/cerberus/00.png").read_bytes()
+    pixmap = QPixmap()
+    if not pixmap.loadFromData(raw, "PNG"):
+        raise RuntimeError("Bundled Cerberus fallback is invalid")
     return pixmap
 
 
@@ -256,9 +250,11 @@ class _Clip:
         return len(self.frames) - 1
 
 
-def _load_animation_pack() -> tuple[_Clip, dict[str, _Clip], str]:
+def _load_animation_pack(character: str = "cerberus") -> tuple[_Clip, dict[str, _Clip], str]:
     """Eagerly load a local pack; invalid optional packs fall back to the original SVG."""
     override = os.environ.get("CERBERUS_ASSET_PACK")
+    if character not in ("cerberus", "ghost", "hades", "charon"):
+        character = "cerberus"
     try:
         if override:
             manifest_path = Path(override).expanduser().resolve()
@@ -276,7 +272,7 @@ def _load_animation_pack() -> tuple[_Clip, dict[str, _Clip], str]:
                     raise ValueError(f"Animation frame is too large: {name}")
                 return path.read_bytes()
         else:
-            root = resources.files("cerberus").joinpath("assets")
+            root = resources.files("cerberus").joinpath("assets", "characters", character)
             manifest = parse_manifest(root.joinpath("animation-pack.json").read_bytes())
 
             def read_asset(name: str) -> bytes:
@@ -417,7 +413,7 @@ class CerberusPet(QWidget):
                  standby_seconds: float = 95.0,
                  away_seconds: float | None = None,
                  roam: bool = False, chat_level: str = "off",
-                 language: str = "en") -> None:
+                 language: str = "en", character: str = "cerberus") -> None:
         super().__init__()
         self.setWindowTitle("Cerberus — the guardian")
         self.setWindowFlags(
@@ -439,8 +435,8 @@ class CerberusPet(QWidget):
         )
         self.roam = roam
         self.chat_level = chat_level if chat_level in CHAT_INTERVALS else "off"
-        self.quips = QuipBook(language)
-        self._default_clip, self._state_frames, self._sprite_source = _load_animation_pack()
+        self.quips = QuipBook(language, character=character)
+        self._default_clip, self._state_frames, self._sprite_source = _load_animation_pack(character)
         self._sprite = self._default_clip.frames[0]
         # Transient phases last exactly one pass of the clip that was loaded for them.
         for phase in list(self.motion.durations):
@@ -564,7 +560,7 @@ class CerberusPet(QWidget):
         self._next_chat_at = time.monotonic() + self._chat_delay()
 
     def set_language(self, language: str) -> None:
-        self.quips = QuipBook(language)
+        self.quips = QuipBook(language, character=self.quips.character)
 
     def tell(self, message: str, *, seconds: float = 2.8, style: str = "say") -> None:
         self._message = message[:90]
@@ -1079,7 +1075,7 @@ class CerberusPet(QWidget):
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, True)
         painter.scale(self.width() / BASE_WIDTH, self.height() / BASE_HEIGHT)
 
-        if clip.anchored:
+        if clip.anchored and visual in self._state_frames:
             # Authored GIF clips carry their own motion: no procedural transforms.
             if state not in ("portal", "arrive", "sleep") and visual != "portal_exit":
                 painter.setPen(Qt.PenStyle.NoPen)
@@ -1333,7 +1329,14 @@ class CerberusPet(QWidget):
         width, height = source.width() * scale, source.height() * scale
         target = QRectF((BASE_WIDTH - width) / 2,
                         bounds.top() + (bounds.height() - height) / 2, width, height)
+        if self._default_clip.anchored:
+            target = self._target_rect(self._default_clip, sprite)
         painter.drawPixmap(target, sprite, source)
+        if self._carry is not None and state in ("catch", "carry", "celebrate"):
+            # A floating offering follows every identity without assuming a dog's mouth.
+            self._draw_carry(painter, self._default_clip, sprite, target,
+                             QRectF(sprite.width() * .63, sprite.height() * .52,
+                                    sprite.width() * .2, sprite.width() * .2), False)
         painter.restore()
 
     def _portal(self, painter: QPainter, progress: float) -> None:

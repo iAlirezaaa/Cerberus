@@ -11,6 +11,7 @@ from .shortcuts import DEFAULT_HOTKEY, MOUSE_GESTURES, SHORTCUT_ACTIONS, parse_h
 
 CHAT_LEVELS = ("off", "quiet", "normal", "chatty")
 LANGUAGE_CHOICES = ("auto", "en", "fa")
+CHARACTERS = {"ghost": "Ghost", "hades": "Hades", "charon": "Charon", "cerberus": "Cerberus"}
 
 
 def data_dir() -> Path:
@@ -27,6 +28,7 @@ def data_dir() -> Path:
 
 @dataclass
 class Settings:
+    character: str = "cerberus"
     clipboard_capture: bool = False
     show_pet: bool = True
     reduced_motion: bool = False
@@ -70,7 +72,7 @@ class Settings:
         for key, (low, high) in ranges.items():
             if type(raw.get(key)) is int and low <= raw[key] <= high:
                 values[key] = raw[key]
-        choices = {"mouse_gesture": MOUSE_GESTURES, "shortcut_action": SHORTCUT_ACTIONS,
+        choices = {"character": CHARACTERS, "mouse_gesture": MOUSE_GESTURES, "shortcut_action": SHORTCUT_ACTIONS,
                    "chat_level": CHAT_LEVELS, "language": LANGUAGE_CHOICES}
         for key, allowed in choices.items():
             if raw.get(key) in allowed:

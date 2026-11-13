@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from PySide6.QtCore import QByteArray, QBuffer, QFileInfo, QIODevice, QLocale, QPoint, QSize, Qt, QTimer, QUrl
-from PySide6.QtGui import QAction, QColor, QDesktopServices, QIcon, QImageReader, QPainter, QPixmap
+from PySide6.QtGui import QAction, QActionGroup, QColor, QDesktopServices, QIcon, QImageReader, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QFileDialog, QFileIconProvider, QFrame, QHBoxLayout, QLabel, QLineEdit,
     QListWidget, QListWidgetItem, QMenu, QMessageBox, QPushButton, QSystemTrayIcon,
@@ -18,7 +18,7 @@ from .icons import has_designed_icon, kind_icon
 from .item_kinds import kind_for_path
 from .pet import CarryIcon, CerberusPet, MiniBubble, mime_image_png
 from .quips import resolve_language
-from .settings import Settings, data_dir, vault_dir
+from .settings import CHARACTERS, Settings, data_dir, vault_dir
 from .settings_window import SettingsWindow, prompt_storage_change
 from .vault_window import VaultWindow
 from .shortcuts import MOUSE_GESTURES, SHORTCUT_ACTIONS, ChordEdge
@@ -69,6 +69,7 @@ class Controller:
         self.window = VaultWindow(self.vault, change_storage=self.ask_change_storage)
         self.settings_window: SettingsWindow | None = None
         self.pet = CerberusPet(
+            character=self.settings.character,
             reduced_motion=self.settings.reduced_motion,
             standby_seconds=self.settings.standby_seconds,
             away_seconds=self.settings.away_seconds if self.settings.wander_off else None,
@@ -113,6 +114,14 @@ class Controller:
         self.menu.addAction("Guard the vault", lambda: self.pet.play("guard"))
         self.menu.addAction("Sleep / standby", lambda: self.pet.play("sleep"))
         sizes = self.menu.addMenu("Pet size")
+        characters = self.menu.addMenu("Character")
+        self.character_actions = QActionGroup(characters)
+        self.character_actions.setExclusive(True)
+        for key, label in CHARACTERS.items():
+            action = characters.addAction(label, lambda checked=False, target=key: self.set_character(target))
+            action.setCheckable(True)
+            self.character_actions.addAction(action)
+            action.setChecked(key == self.settings.character)
         for label, size in (("Small", 230), ("Medium", 340), ("Large", 450)):
             sizes.addAction(label, lambda checked=False, target=size: self.set_pet_size(target))
         self.menu.addSeparator()
@@ -314,6 +323,31 @@ class Controller:
         # so it is not given a second, conflicting meaning.)
         if reason == QSystemTrayIcon.ActivationReason.Trigger:
             self.toggle_minimized()
+
+    def set_character(self, character: str) -> None:
+        if character not in CHARACTERS:
+            return
+        self.settings.character = character
+        self.pet.quips.character = character
+        self.settings.save(self.home)
+        from .pet import _load_animation_pack
+        default, clips, source = _load_animation_pack(character)
+        self.pet._default_clip, self.pet._state_frames, self.pet._sprite_source = default, clips, source
+        self.pet._sprite = default.frames[0]
+        self.pet._override = None
+        self.pet._fade_from = None
+        self.pet._last_paint_key = None
+        self.pet._last_paint = None
+        self.pet._mirrored.clear()
+        self.pet.update()
+        self.tray.setIcon(tray_icon(self.pet._sprite))
+        for bubble in (self.dock, self.bubble):
+            bubble._curl = None
+            face = self.pet._sprite
+            bubble._face = face.copy(0, 0, face.width(), int(face.height() * .55)).scaled(
+                int(bubble.width() * .7), int(bubble.height() * .7),
+                Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            bubble.update()
 
     def open_menu(self, where) -> None:
         self.menu.exec(where)

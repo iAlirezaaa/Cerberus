@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "assets/animations/**"
-      - "assets/concepts/**"
+      - "cerberus/assets/characters/**"
       - "scripts/package_animation_assets.py"
       - ".github/workflows/animation-assets.yml"
       - "LICENSE"

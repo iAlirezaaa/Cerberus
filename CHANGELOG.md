@@ -1,3 +1,10 @@
+## 2026-11-14 — Four underworld companions
+
+- Replaced previous mascot assets with the supplied Ghost, Hades, Charon and Cerberus identities.
+- Added four transparent humorous character GIFs and their 64 PNG source frames.
+- Added persistent live character selection, refreshed tray/bubble artwork, and kept capture offerings visible for each identity.
+- Updated artwork packaging, regression tests and previews. All assets load locally without a generation service.
+
 # Changelog
 
 ## Unreleased — vault previews, minimized mode, item icons, generated clips

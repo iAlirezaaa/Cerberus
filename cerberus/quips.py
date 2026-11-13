@@ -150,13 +150,30 @@ def greeting_event(hour: int) -> str:
 class QuipBook:
     """Picks lines without repeating the previous one for the same event."""
 
-    def __init__(self, language: str = "en", rng: random.Random | None = None) -> None:
+    def __init__(self, language: str = "en", rng: random.Random | None = None,
+                 character: str = "cerberus") -> None:
+        self.character = character
         self.language = language if language in LANGUAGES else "en"
         self.rng = rng or random.Random()
         self._last: dict[str, str] = {}
 
     def pick(self, event: str, **values: object) -> str:
         options = LINES.get(event, {}).get(self.language) or LINES.get(event, {}).get("en")
+        if self.character != "cerberus":
+            themes = {
+                "ghost": {"en": ("Boo! Oh… I scared myself.", "Invisible? My hood disagrees."),
+                          "fa": ("بو! وای… خودم ترسیدم!", "نامرئی‌ام؟ شنلم که قبول نداره!")},
+                "hades": {"en": ("King of the underworld. Still sorting files.", "My crown needs a holiday."),
+                          "fa": ("پادشاه دنیای زیرینم؛ هنوز دارم فایل مرتب می‌کنم.", "تاجم مرخصی می‌خواد.")},
+                "charon": {"en": ("One coin for the ferry. Exact change, please.", "No fare? I'll wait. Eternity is long."),
+                           "fa": ("یه سکه کرایه؛ لطفاً پول خرد!", "کرایه نداری؟ صبر می‌کنم، ابدیت طولانیه.")},
+            }
+            if event.startswith("greet_") or event in ("idle", "think", "pet", "arrive"):
+                options = themes.get(self.character, themes["ghost"])[self.language]
+            elif event == "sleep":
+                options = ("کمی استراحت بین دو شیفت ابدی…",) if self.language == "fa" else ("A little rest between eternal shifts…",)
+            elif event == "capture_url":
+                options = ("لینک در گنجینه ذخیره شد!",) if self.language == "fa" else ("Link saved in the vault!",)
         if not options:
             return ""
         pool = [line for line in options if line != self._last.get(event)] or list(options)

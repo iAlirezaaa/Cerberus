@@ -7,9 +7,9 @@
 
 An animated, local-first desktop companion that catches text, URLs and files you feed it, then guards them in a searchable vault.
 
-![Cerberus mark](assets/cerberus-mark.svg)
 
-![Cerberus's generated transparent three-headed character sprite](cerberus/assets/guardian-ember.png)
+
+
 
 ![Animated Cerberus desktop pet preview rendered from the application](preview/cerberus-animation-preview.gif)
 
@@ -19,36 +19,17 @@ An animated, local-first desktop companion that catches text, URLs and files you
 </div>
 
 
-## Generated Cerberus animation assets
+## Four companions
 
-The **original AI-generated GIFs and PNG sprite frames** are included in this repository (not external links). They have transparent backgrounds. The GIF format uses one-bit transparency; use the original RGBA PNG frames when you need smooth glows and alpha edges.
+Choose **Character** in the tray or pet context menu. The choice is saved locally and updates the overlay, tray icon and return bubble immediately. Cerberus is the default.
 
-| Hades portal entrance | Bored / looks around |
-| --- | --- |
-| ![Cerberus appearing through Hades portal](assets/animations/cerberus_portal_enter.gif) | ![Cerberus bored look-around loop](assets/animations/cerberus_bored_lookaround.gif) |
+| Ghost | Hades | Charon | Cerberus |
+| --- | --- | --- | --- |
+| ![Shy ghost tries to scare you](cerberus/assets/characters/ghost/performance.gif) | ![Hades loses his regal composure](cerberus/assets/characters/hades/performance.gif) | ![Charon patiently requests his ferry fare](cerberus/assets/characters/charon/performance.gif) | ![Three heads disagree during guard duty](cerberus/assets/characters/cerberus/performance.gif) |
 
-- [Both GIFs, 16 individual PNG frames, source sprite sheets and a loadable animation-pack manifest](assets/animations/README.md)
-- [Five additional character and product concept sheets](assets/concepts/README.md)
-- The bundled app continues using its existing production sprite by default. **These two newly imported sequences are optional art assets**, not a claim that arbitrary global selection capture or fully rigged animation is already shipped.
-- To preview the new frame-based animations in the app, set `CERBERUS_ASSET_PACK` to the absolute path of `assets/animations/animation-pack.json` before launching `cerberus-desktop`. The external pack overrides the default sprite and is best regarded as experimental.
-- To package all repository artwork into a ZIP, run `python scripts/package_animation_assets.py` or get the `Cerberus-visual-assets` artifact from the **Animation Assets** workflow.
+All four transparent GIFs, their 64 extracted PNG frames and loadable manifests are bundled in [characters](cerberus/assets/characters/). No generation service or network access is needed to run them. These replace all previous mascot artwork. Idle and play use authored frames; entrance, movement and capture use the new character with procedural whole-body motion and a floating offering icon. Reduced motion shows a still pose. This is not a skeletal rig.
 
-## Animated GIF character (current default)
-
-The desktop pet plays the transparent GIF clips in [`cerberus/assets/gifs/`](cerberus/assets/gifs/), mapped to states in [`animation-pack.json`](cerberus/assets/animation-pack.json):
-
-| GIF | Used for |
-| --- | --- |
-| `idle_breathe.gif`, `idle_look.gif`, `idle_wag.gif`, `idle_wait.gif`, `bark.gif` | Idle (rotates between them) |
-| `fall_asleep.gif` | Standby / sleep (loops the sleeping frames) |
-| `stand_alert.gif` | Wake, guard |
-| `bark.gif` | Something is dragged over Cerberus |
-| `portal_enter.gif` | Capture start, and coming back on screen |
-| `run.gif` | Dash, and running off screen (mirrored when leaving left) |
-| `catch_scroll.gif` → `carry_file.gif` → `data_snack.gif` | Capture sequence |
-| `play_orb.gif` | Petting / play |
-
-**Alive:** Cerberus strolls around, turns toward your cursor, talks and thinks in speech/thought bubbles (English or Persian), and shows the actual item it caught on the scroll it carries: a thumbnail for images, the system file-type icon and extension for files, a globe for links and lines for text.
+Run `python scripts/package_animation_assets.py` for a reproducible ZIP containing the four characters, frame sources and license notices.
 
 **Settings** (tray → *Settings…*): see and change where memories are stored (database, copied files, settings file), size, walking, chat level, language, nap/wander timing, the return button, shortcuts and clipboard capture.
 
@@ -134,7 +115,7 @@ python -m cerberus export ./cerberus-export.json
 python -m unittest discover -s tests -v
 ```
 
-**Character assets:** `guardian-ember.png`, `guardian-run.png`, `guardian-carry.png`, `guardian-sleep.png`, and `guardian-guard.png` are generated alpha-transparent raster poses. [guardian.svg](cerberus/assets/guardian.svg) remains the fallback. Qt preloads the default sprite and state images, then applies the deterministic motion timeline and portal, paper-capture and particle effects. The pack manifest is [animation-pack.json](cerberus/assets/animation-pack.json); its format and bounds are documented in [docs/ANIMATION_PACK.md](docs/ANIMATION_PACK.md). Set `CERBERUS_ASSET_PACK` to a local manifest path to load a custom pack. The motion pipeline lives in [motion.py](cerberus/motion.py).
+**Character assets:** each of the four folders in `cerberus/assets/characters/` contains a transparent `performance.gif`, sixteen extracted PNG frames and `animation-pack.json`. Qt preloads these bounded local files. External packs remain available through `CERBERUS_ASSET_PACK`; see [the format](docs/ANIMATION_PACK.md).
 
 Run `python -m cerberus --help` for all commands. Override the data directory with `CERBERUS_HOME`.
 

@@ -30,3 +30,11 @@ Optional dependencies such as PySide6 are installed separately and retain
 their respective license terms. No third-party source code is intentionally
 vendored in this repository. Review dependency and asset provenance before
 redistributing a build that adds third-party material.
+
+Replacement character artwork (2026-11-14)
+The four identities in cerberus/assets/characters were supplied by the repository
+owner for this task. Animated GIF derivatives were generated with GPT Image 2.6
+through Higgsfield from those references. The PNG files are lossless decoded GIF
+frames, not separately generated art. Earlier mascot artwork was removed from
+the current tree at the owner's request; its historical notices remain above.
+No third-party rights in supplied references are expanded by this notice.
